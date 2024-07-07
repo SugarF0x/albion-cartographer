@@ -1,18 +1,18 @@
 import { GlobalKeyboardListener } from 'node-global-key-listener'
 import type { IGlobalKeyDownMap, IGlobalKeyEvent } from 'node-global-key-listener'
 import { Monitor } from 'node-screenshots'
-import fs from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 
 const v = new GlobalKeyboardListener()
 const monitors = Monitor.all()
 
 // dev
-const files = fs.readdirSync('sampleImages')
+const files = readdirSync('sampleImages')
 
 function getRandomImage() {
   const randomIndex = Math.floor(Math.random() * files.length)
   const [randomFile] = files.splice(randomIndex, 1)
-  return `data:image/png;base64,${fs.readFileSync(`sampleImages/${randomFile}`, 'base64')}`
+  return `data:image/png;base64,${readFileSync(`sampleImages/${randomFile}`, 'base64')}`
 }
 // dev end
 
