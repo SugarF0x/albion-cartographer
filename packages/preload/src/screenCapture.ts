@@ -1,20 +1,24 @@
 import { GlobalKeyboardListener } from 'node-global-key-listener'
 import type { IGlobalKeyDownMap, IGlobalKeyEvent } from 'node-global-key-listener'
 import { Monitor } from 'node-screenshots'
+import fs from 'node:fs'
 
 const v = new GlobalKeyboardListener()
 const monitors = Monitor.all()
 
-export function screenCapture(onCapture: (data: Buffer, mousePos: [number, number]) => void) {
+export function screenCapture(onCapture: (data: string, mousePos: [number, number]) => void) {
   function listener(e: IGlobalKeyEvent, down: IGlobalKeyDownMap) {
     if (e.name !== 'MOUSE LEFT') return
     if (e.state !== 'DOWN') return
     if (!down['LEFT CTRL'] || !down['LEFT SHIFT']) return
 
-    monitors.forEach(m => {
-      const image = m.captureImageSync()
-      onCapture(image.toPngSync(), e.location!)
-    })
+    for (const monitor of monitors) {
+      if (!monitor.isPrimary) continue
+      const image = monitor.captureImageSync()
+      fs.writeFileSync(`sampleImages/${Date.now()}-${e.location![0]}-${e.location![1]}.png`, image.toPngSync())
+      // onCapture(URL.createObjectURL(new Blob([image.toPngSync().buffer], { type: 'image/png' })), e.location!)
+      break
+    }
   }
 
   v.addListener(listener)
