@@ -1,4 +1,4 @@
-// import { inRange } from 'lodash'
+import { inRange } from 'lodash'
 
 export function validate(data: string, mousePos: [x: number, y: number]): Promise<string[]> {
   return new Promise(resolve => {
@@ -13,14 +13,6 @@ export function validate(data: string, mousePos: [x: number, y: number]): Promis
       canvas.height = image.height
 
       ctx.drawImage(image, 0, 0)
-
-      // const [diamondX, diamondY] = [canvas.width * DIAMOND_COORDS_ASPECT[0], canvas.height * DIAMOND_COORDS_ASPECT[1]]
-      // const pixelData = ctx.getImageData(diamondX, diamondY, 1, 1).data
-      // const isDiamondValid = DIAMOND_COLORS.some(colors => (
-      //   colors.every((color, index) => (
-      //     inRange(color, pixelData[index] - 1, pixelData[index] + 2)
-      //   ))
-      // ))
 
       const zoneX = BREAKPOINTS.zone[0] * canvas.width
       const zoneY = BREAKPOINTS.zone[1] * canvas.height
@@ -42,17 +34,28 @@ export function validate(data: string, mousePos: [x: number, y: number]): Promis
       // find portal
 
       let portalPos: number[] = []
-      $: if (mousePos[0] / canvas.width < .5) {
-        for (let y = mousePos[1]; y > y - 10; y--) {
-          for (let x = mousePos[0]; x < x + 10; x++) {
-            const previousPixel = ctx.getImageData(x-1, y, 1, 1).data
-            const currentPixel = ctx.getImageData(x, y, 1, 1).data
-            if (isDrasticChange(previousPixel, currentPixel, 50)) {
-              portalPos = [x, y]
-              break $
-            }
-          }
+      if (mousePos[0] / canvas.width < .5) {
+
+        for (let i = 1; i < mousePos[0]; i++) {
+          const x = mousePos[0] + i
+          const y = mousePos[1] - i
+          const currentPixel = ctx.getImageData(x, y, 1, 1).data
+          if (currentPixel.slice(0, 3).some((color, index) => !inRange(color, CHARGE_BORDER_COLOR[index] - 1, CHARGE_BORDER_COLOR[index] + 2))) continue
+          portalPos = [x, y]
+          break
         }
+
+        if (!portalPos.length) throw new Error('Failed to find portal frame')
+
+        for (let x = portalPos[0]; x > 0; x--) {
+          portalPos[0] = x
+          const currentPixel = ctx.getImageData(x, portalPos[1], 1, 1).data
+          if (currentPixel.slice(0, 3).some((color, index) => !inRange(color, CHARGE_BORDER_COLOR[index] - 1, CHARGE_BORDER_COLOR[index] + 2))) break
+          portalPos = [x, portalPos[1]]
+        }
+
+        portalPos[0] -= CHARGE_BORDER_X_OFFSET_RATIO * canvas.width
+        portalPos[1] -= CHARGE_BORDER_Y_OFFSET_RATIO * canvas.height
       } else {
         console.log('unsupported yet')
         resolve([zoneImage])
@@ -63,8 +66,7 @@ export function validate(data: string, mousePos: [x: number, y: number]): Promis
 
       const portalWidth = PORTAL_CARD_SIZE_ASPECT[0] * canvas.width
       const portalHeight = PORTAL_CARD_SIZE_ASPECT[1] * canvas.height
-      const portalX = portalPos[0]
-      const portalY = portalPos[1] - portalHeight
+      const [portalX, portalY] = portalPos
 
       const portalData = ctx.getImageData(portalX, portalY, portalWidth, portalHeight)
 
@@ -109,14 +111,6 @@ const BREAKPOINTS: Record<string, [x: number, y: number, width: number, height: 
   portalTime: [543 / ORIGINAL_SIZE[0], 166 / ORIGINAL_SIZE[1], 162 / ORIGINAL_SIZE[0], 47 / ORIGINAL_SIZE[1]],
 }
 
-function isDrasticChange(prevPixel: Uint8ClampedArray, currentPixel: Uint8ClampedArray, threshold: number) {
-  const [pR, pG, pB] = prevPixel
-  const [cR, cG, cB] = currentPixel
-
-  const rDiff = Math.abs(cR - pR)
-  const gDiff = Math.abs(cG - pG)
-  const bDiff = Math.abs(cB - pB)
-
-  const diff = rDiff + gDiff + bDiff
-  return diff > threshold
-}
+const CHARGE_BORDER_COLOR = [126, 116, 120]
+const CHARGE_BORDER_X_OFFSET_RATIO = 20 / ORIGINAL_SIZE[0]
+const CHARGE_BORDER_Y_OFFSET_RATIO = 154 / ORIGINAL_SIZE[1]
