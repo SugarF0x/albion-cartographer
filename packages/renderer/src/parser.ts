@@ -3,6 +3,9 @@ import { inRange } from 'lodash'
 /**
  * @throws Error on invalid screenshot or parsing failures
  */
+
+// TODO: avoid multiple reads
+
 export function parse(data: string, mousePos: [x: number, y: number]): Promise<string[]> {
   return new Promise(resolve => {
     const image = new Image()
@@ -25,7 +28,7 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<s
       const zoneData = ctx.getImageData(zoneX, zoneY, zoneWidth, zoneHeight)
 
       const zoneCanvas = document.createElement('canvas')
-      const zoneCtx = zoneCanvas.getContext('2d')
+      const zoneCtx = zoneCanvas.getContext('2d', { willReadFrequently: true })
       if (!zoneCtx) throw new Error('2D context not available')
 
       zoneCanvas.width = zoneWidth
@@ -93,9 +96,28 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<s
       portalCtx.putImageData(portalData, 0, 0)
       const portalImage = portalCanvas.toDataURL()
 
+      // extract zone meta data
+
+      const zoneNameX = BREAKPOINTS.zoneName[0] * canvas.width
+      const zoneNameY = BREAKPOINTS.zoneName[1] * canvas.height
+      const zoneNameWidth = BREAKPOINTS.zoneName[2] * canvas.width
+      const zoneNameHeight = BREAKPOINTS.zoneName[3] * canvas.height
+
+      const zoneNameData = zoneCtx.getImageData(zoneNameX, zoneNameY, zoneNameWidth, zoneNameHeight)
+
+      const zoneNameCanvas = document.createElement('canvas')
+      const zoneNameCtx = zoneNameCanvas.getContext('2d')
+      if (!zoneNameCtx) throw new Error('2D context not available')
+
+      zoneNameCanvas.width = zoneNameWidth
+      zoneNameCanvas.height = zoneNameHeight
+
+      zoneNameCtx.putImageData(zoneNameData, 0, 0)
+      const zoneNameImage = zoneNameCanvas.toDataURL()
+
       // TODO: try to figure out of the portal info is present on mouse pos and if so, whether the countdown is red or not
 
-      resolve([zoneImage, portalImage])
+      resolve([zoneImage, portalImage, zoneNameImage])
     }
 
     image.src = data
@@ -111,12 +133,12 @@ const DIAMOND_COLORS = [
   [255, 2, 0],
 ]
 
-const BREAKPOINTS: Record<string, [x: number, y: number, width: number, height: number]> = {
+const BREAKPOINTS = {
   zone: [524 / ORIGINAL_SIZE[0], 55 / ORIGINAL_SIZE[1], 814 / ORIGINAL_SIZE[0], 157 / ORIGINAL_SIZE[1]],
-  zoneName: [117 / ORIGINAL_SIZE[0], 19 / ORIGINAL_SIZE[1], 628 / ORIGINAL_SIZE[0], 79 / ORIGINAL_SIZE[1]],
+  zoneName: [180 / ORIGINAL_SIZE[0], 19 / ORIGINAL_SIZE[1], 628 / ORIGINAL_SIZE[0], 79 / ORIGINAL_SIZE[1]],
   portalName: [120 / ORIGINAL_SIZE[0], 56 / ORIGINAL_SIZE[1], 578 / ORIGINAL_SIZE[0], 51 / ORIGINAL_SIZE[1]],
   portalTime: [543 / ORIGINAL_SIZE[0], 166 / ORIGINAL_SIZE[1], 162 / ORIGINAL_SIZE[0], 47 / ORIGINAL_SIZE[1]],
-}
+} satisfies Record<string, [x: number, y: number, width: number, height: number]>
 
 const PORTAL_CARD_SIZE_ASPECT = [720 / ORIGINAL_SIZE[0], 225 / ORIGINAL_SIZE[1]]
 const DIAMOND_PIXEL_POS_ASPECT = [90 / (BREAKPOINTS.zone[2] * ORIGINAL_SIZE[0]), 90 / (BREAKPOINTS.zone[3] * ORIGINAL_SIZE[1])]
