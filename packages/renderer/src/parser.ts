@@ -134,9 +134,27 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<s
       portalNameCtx.putImageData(portalNameData, 0, 0)
       const portalNameImage = portalNameCanvas.toDataURL()
 
-      // TODO: try to figure out of the portal info is present on mouse pos and if so, whether the countdown is red or not
+      // TODO: get whether timer is red or not to determine the time scope
+      // extract portal timer
 
-      resolve([zoneImage, portalImage, zoneNameImage, portalNameImage])
+      const portalTimeX = BREAKPOINTS.portalTime[0] * canvas.width
+      const portalTimeY = BREAKPOINTS.portalTime[1] * canvas.height
+      const portalTimeWidth = BREAKPOINTS.portalTime[2] * canvas.width
+      const portalTimeHeight = BREAKPOINTS.portalTime[3] * canvas.height
+
+      const portalTimeData = portalCtx.getImageData(portalTimeX, portalTimeY, portalTimeWidth, portalTimeHeight)
+
+      const portalTimeCanvas = document.createElement('canvas')
+      const portalTimeCtx = portalTimeCanvas.getContext('2d')
+      if (!portalTimeCtx) throw new Error('2D context not available')
+
+      portalTimeCanvas.width = portalTimeWidth
+      portalTimeCanvas.height = portalTimeHeight
+
+      portalTimeCtx.putImageData(portalTimeData, 0, 0)
+      const portalTimeImage = portalTimeCanvas.toDataURL()
+
+      resolve([zoneImage, portalImage, zoneNameImage, portalNameImage, portalTimeImage])
     }
 
     image.src = data
