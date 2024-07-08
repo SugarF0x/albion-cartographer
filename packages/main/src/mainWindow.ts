@@ -1,7 +1,6 @@
 import {app, BrowserWindow} from 'electron'
 import {join} from 'node:path'
 import {fileURLToPath} from 'node:url'
-import screenCapture from './screen-capture'
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
@@ -13,7 +12,7 @@ async function createWindow() {
       webviewTag: false, // The webview tag is not recommended. Consider alternatives like an iframe or Electron's BrowserView. @see https://www.electronjs.org/docs/latest/api/webview-tag#warning
       preload: join(app.getAppPath(), 'packages/preload/dist/index.mjs'),
     },
-  });
+  })
 
   /**
    * If the 'show' property of the BrowserWindow's constructor is omitted from the initialization options,
@@ -24,12 +23,12 @@ async function createWindow() {
    * @see https://github.com/electron/electron/issues/25012 for the afford mentioned issue.
    */
   browserWindow.on('ready-to-show', () => {
-    browserWindow?.show();
+    browserWindow?.show()
 
     if (import.meta.env.DEV) {
-      browserWindow?.webContents.openDevTools();
+      browserWindow?.webContents.openDevTools()
     }
-  });
+  })
 
   /**
    * Load the main page of the main window.
@@ -38,7 +37,7 @@ async function createWindow() {
     /**
      * Load from the Vite dev server for development.
      */
-    await browserWindow.loadURL(import.meta.env.VITE_DEV_SERVER_URL);
+    await browserWindow.loadURL(import.meta.env.VITE_DEV_SERVER_URL)
   } else {
     /**
      * Load from the local file system for production and test.
@@ -51,26 +50,25 @@ async function createWindow() {
      */
     await browserWindow.loadFile(
       fileURLToPath(new URL('./../../renderer/dist/index.html', import.meta.url)),
-    );
+    )
   }
 
-  return browserWindow;
+  return browserWindow
 }
 
 /**
  * Restore an existing BrowserWindow or Create a new BrowserWindow.
  */
 export async function restoreOrCreateWindow() {
-  let window = BrowserWindow.getAllWindows().find(w => !w.isDestroyed());
+  let window = BrowserWindow.getAllWindows().find(w => !w.isDestroyed())
 
   if (window === undefined) {
-    window = await createWindow();
-    screenCapture(window)
+    window = await createWindow()
   }
 
   if (window.isMinimized()) {
-    window.restore();
+    window.restore()
   }
 
-  window.focus();
+  window.focus()
 }
