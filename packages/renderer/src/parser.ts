@@ -87,7 +87,7 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<s
       const portalData = ctx.getImageData(portalX, portalY, portalWidth, portalHeight)
 
       const portalCanvas = document.createElement('canvas')
-      const portalCtx = portalCanvas.getContext('2d')
+      const portalCtx = portalCanvas.getContext('2d', { willReadFrequently: true })
       if (!portalCtx) throw new Error('2D context not available')
 
       portalCanvas.width = portalWidth
@@ -96,7 +96,7 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<s
       portalCtx.putImageData(portalData, 0, 0)
       const portalImage = portalCanvas.toDataURL()
 
-      // extract zone meta data
+      // extract zone name
 
       const zoneNameX = BREAKPOINTS.zoneName[0] * canvas.width
       const zoneNameY = BREAKPOINTS.zoneName[1] * canvas.height
@@ -115,9 +115,28 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<s
       zoneNameCtx.putImageData(zoneNameData, 0, 0)
       const zoneNameImage = zoneNameCanvas.toDataURL()
 
+      // extract portal name
+
+      const portalNameX = BREAKPOINTS.portalName[0] * canvas.width
+      const portalNameY = BREAKPOINTS.portalName[1] * canvas.height
+      const portalNameWidth = BREAKPOINTS.portalName[2] * canvas.width
+      const portalNameHeight = BREAKPOINTS.portalName[3] * canvas.height
+
+      const portalNameData = portalCtx.getImageData(portalNameX, portalNameY, portalNameWidth, portalNameHeight)
+
+      const portalNameCanvas = document.createElement('canvas')
+      const portalNameCtx = portalNameCanvas.getContext('2d')
+      if (!portalNameCtx) throw new Error('2D context not available')
+
+      portalNameCanvas.width = portalNameWidth
+      portalNameCanvas.height = portalNameHeight
+
+      portalNameCtx.putImageData(portalNameData, 0, 0)
+      const portalNameImage = portalNameCanvas.toDataURL()
+
       // TODO: try to figure out of the portal info is present on mouse pos and if so, whether the countdown is red or not
 
-      resolve([zoneImage, portalImage, zoneNameImage])
+      resolve([zoneImage, portalImage, zoneNameImage, portalNameImage])
     }
 
     image.src = data
@@ -136,7 +155,7 @@ const DIAMOND_COLORS = [
 const BREAKPOINTS = {
   zone: [524 / ORIGINAL_SIZE[0], 55 / ORIGINAL_SIZE[1], 814 / ORIGINAL_SIZE[0], 157 / ORIGINAL_SIZE[1]],
   zoneName: [180 / ORIGINAL_SIZE[0], 19 / ORIGINAL_SIZE[1], 628 / ORIGINAL_SIZE[0], 79 / ORIGINAL_SIZE[1]],
-  portalName: [120 / ORIGINAL_SIZE[0], 56 / ORIGINAL_SIZE[1], 578 / ORIGINAL_SIZE[0], 51 / ORIGINAL_SIZE[1]],
+  portalName: [120 / ORIGINAL_SIZE[0], 53 / ORIGINAL_SIZE[1], 578 / ORIGINAL_SIZE[0], 53 / ORIGINAL_SIZE[1]],
   portalTime: [543 / ORIGINAL_SIZE[0], 166 / ORIGINAL_SIZE[1], 162 / ORIGINAL_SIZE[0], 47 / ORIGINAL_SIZE[1]],
 } satisfies Record<string, [x: number, y: number, width: number, height: number]>
 
