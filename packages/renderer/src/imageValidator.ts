@@ -31,10 +31,23 @@ export function validate(data: string): Promise<boolean> {
   })
 }
 
-const DIAMOND_COORDS_ASPECT = [615 / 3840, 150 / 2160]
+const ORIGINAL_SIZE = [3840, 2160]
+
+const DIAMOND_COORDS_ASPECT = [615 / ORIGINAL_SIZE[0], 150 / ORIGINAL_SIZE[1]]
 const DIAMOND_COLORS = [
   [61, 103, 156],
   [27, 28, 41],
   [255, 176, 1],
   [255, 2, 0],
 ]
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const PORTAL_CARD_SIZE_ASPECT = [720 / ORIGINAL_SIZE[0], 225 / ORIGINAL_SIZE[1]]
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const BREAKPOINTS: Record<string, [x: number, y: number, width: number, height: number]> = {
+  zone: [524 / ORIGINAL_SIZE[0], 55 / ORIGINAL_SIZE[1], 814 / ORIGINAL_SIZE[0], 157 / ORIGINAL_SIZE[1]],
+  zoneName: [117 / ORIGINAL_SIZE[0], 19 / ORIGINAL_SIZE[1], 628 / ORIGINAL_SIZE[0], 79 / ORIGINAL_SIZE[1]],
+  portalName: [120 / ORIGINAL_SIZE[0], 56 / ORIGINAL_SIZE[1], 578 / ORIGINAL_SIZE[0], 51 / ORIGINAL_SIZE[1]],
+  portalTime: [543 / ORIGINAL_SIZE[0], 166 / ORIGINAL_SIZE[1], 162 / ORIGINAL_SIZE[0], 47 / ORIGINAL_SIZE[1]],
+}
+
