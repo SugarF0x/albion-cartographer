@@ -35,7 +35,6 @@ export function validate(data: string, mousePos: [x: number, y: number]): Promis
 
       let portalPos: number[] = []
       if (mousePos[0] / canvas.width < .5) {
-
         for (let i = 1; i < mousePos[0]; i++) {
           const x = mousePos[0] + i
           const y = mousePos[1] - i
@@ -57,12 +56,27 @@ export function validate(data: string, mousePos: [x: number, y: number]): Promis
         portalPos[0] -= CHARGE_BORDER_X_OFFSET_RATIO * canvas.width
         portalPos[1] -= CHARGE_BORDER_Y_OFFSET_RATIO * canvas.height
       } else {
-        console.log('unsupported yet')
-        resolve([zoneImage])
-        return
-      }
+        for (let i = 1; i < mousePos[0]; i++) {
+          const x = mousePos[0] - i
+          const y = mousePos[1] - i
+          const currentPixel = ctx.getImageData(x, y, 1, 1).data
+          if (currentPixel.slice(0, 3).some((color, index) => !inRange(color, CHARGE_BORDER_COLOR[index] - 1, CHARGE_BORDER_COLOR[index] + 2))) continue
+          portalPos = [x, y]
+          break
+        }
 
-      console.log('potal pos', portalPos)
+        if (!portalPos.length) throw new Error('Failed to find portal frame')
+
+        for (let x = portalPos[0]; x > 0; x--) {
+          portalPos[0] = x
+          const currentPixel = ctx.getImageData(x, portalPos[1], 1, 1).data
+          if (currentPixel.slice(0, 3).some((color, index) => !inRange(color, CHARGE_BORDER_COLOR[index] - 1, CHARGE_BORDER_COLOR[index] + 2))) break
+          portalPos = [x, portalPos[1]]
+        }
+
+        portalPos[0] -= CHARGE_BORDER_X_OFFSET_RATIO * canvas.width
+        portalPos[1] -= CHARGE_BORDER_Y_OFFSET_RATIO * canvas.height
+      }
 
       const portalWidth = PORTAL_CARD_SIZE_ASPECT[0] * canvas.width
       const portalHeight = PORTAL_CARD_SIZE_ASPECT[1] * canvas.height
