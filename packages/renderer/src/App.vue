@@ -1,14 +1,14 @@
 <script lang="ts" setup>
 import { screenCapture } from '#preload'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { validate } from './imageValidator'
+import { parse } from './parser'
 
 const imgData = ref<string[]>([])
 
 onMounted(() => {
   const unsubscribe = screenCapture((data, position) => {
     console.log(position)
-    validate(data, position).then(items => imgData.value = [data, ...items])
+    parse(data, position).then(items => imgData.value = [data, ...items])
     // preprocessImageForOCR(data).then(processed => {
     //   imgData.value.push(data)
     //   imgData.value.push(processed)
