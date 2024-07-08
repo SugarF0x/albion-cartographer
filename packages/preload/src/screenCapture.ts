@@ -9,10 +9,12 @@ const monitors = Monitor.all()
 // dev
 const files = readdirSync('sampleImages')
 
-function getRandomImage() {
+function getRandomImage(): [string, [number, number]] {
   const randomIndex = Math.floor(Math.random() * files.length)
   const [randomFile] = files.splice(randomIndex, 1)
-  return `data:image/png;base64,${readFileSync(`sampleImages/${randomFile}`, 'base64')}`
+  const image = `data:image/png;base64,${readFileSync(`sampleImages/${randomFile}`, 'base64')}`
+  const [_, x, y] = randomFile.split('.')[0].split('-')
+  return [image, [Number(x), Number(y)]]
 }
 // dev end
 
@@ -26,7 +28,7 @@ export function screenCapture(onCapture: (data: string, mousePos: [number, numbe
       if (!monitor.isPrimary) continue
 
       // dev
-      onCapture(getRandomImage(), [0, 0])
+      onCapture(...getRandomImage())
       break
       // dev end
 

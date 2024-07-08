@@ -6,9 +6,9 @@ import { validate } from './imageValidator'
 const imgData = ref<string[]>([])
 
 onMounted(() => {
-  const unsubscribe = screenCapture((data /*position*/) => {
-    validate(data).then(console.log)
-    imgData.value.unshift(data)
+  const unsubscribe = screenCapture((data, position) => {
+    console.log(position)
+    validate(data, position).then(items => imgData.value = [data, ...items])
     // preprocessImageForOCR(data).then(processed => {
     //   imgData.value.push(data)
     //   imgData.value.push(processed)
@@ -21,7 +21,7 @@ onMounted(() => {
 
 <template>
   <h1>cock and balls</h1>
-  <img v-for="img of imgData" :key="img" :src="img" alt="" width="1200px" height="600px">
+  <img v-for="img of imgData" :key="img" :src="img" alt="" style="max-width: 800px; max-height: 400px;">
 </template>
 
 <style>
