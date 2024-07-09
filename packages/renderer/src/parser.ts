@@ -6,7 +6,7 @@ import { inRange } from 'lodash'
 
 // TODO: avoid multiple reads
 
-export function parse(data: string, mousePos: [x: number, y: number]): Promise<string[]> {
+export function parse(data: string, mousePos: [x: number, y: number]): Promise<{ zoneImage: string, portalImage: string, zoneNameImage: string, portalNameImage: string, portalTimeImage: string }> {
   return new Promise(resolve => {
     const image = new Image()
 
@@ -134,7 +134,6 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<s
       portalNameCtx.putImageData(portalNameData, 0, 0)
       const portalNameImage = portalNameCanvas.toDataURL()
 
-      // TODO: get whether timer is red or not to determine the time scope
       // extract portal timer
 
       const portalTimeX = BREAKPOINTS.portalTime[0] * canvas.width
@@ -154,7 +153,7 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<s
       portalTimeCtx.putImageData(portalTimeData, 0, 0)
       const portalTimeImage = portalTimeCanvas.toDataURL()
 
-      resolve([zoneImage, portalImage, zoneNameImage, portalNameImage, portalTimeImage])
+      resolve({ zoneImage, portalImage, zoneNameImage, portalNameImage, portalTimeImage })
     }
 
     image.src = data

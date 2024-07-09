@@ -2,17 +2,19 @@
 import { screenCapture } from '#preload'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { parse } from './parser'
+import { preprocessImageForOCR } from './processor'
 
 const imgData = ref<string[]>([])
 
 onMounted(() => {
-  const unsubscribe = screenCapture((data, position) => {
-    console.log(position)
-    parse(data, position).then(items => imgData.value = [data, ...items])
-    // preprocessImageForOCR(data).then(processed => {
-    //   imgData.value.push(data)
-    //   imgData.value.push(processed)
-    // })
+  const unsubscribe = screenCapture(async (data, position) => {
+    imgData.value = [data]
+    const images = await parse(data, position)
+
+    imgData.value.push(images.zoneImage, images.portalImage)
+    imgData.value.push(await preprocessImageForOCR(images.zoneNameImage))
+    imgData.value.push(await preprocessImageForOCR(images.portalNameImage))
+    imgData.value.push(await preprocessImageForOCR(images.portalTimeImage))
   })
 
   onBeforeUnmount(unsubscribe)
