@@ -34,6 +34,7 @@
   "devDependencies": {
     "@types/lodash": "^4.17.6",
     "@types/node": "20.14.10",
+    "@types/tesseract.js": "^2.0.0",
     "@typescript-eslint/eslint-plugin": "7.15.0",
     "@vitejs/plugin-vue": "5.0.5",
     "@vue/test-utils": "2.4.6",
@@ -57,6 +58,7 @@
     "electron-updater": "6.2.1",
     "lodash": "^4.17.21",
     "node-global-key-listener": "^0.3.0",
-    "node-screenshots": "^0.2.0"
+    "node-screenshots": "^0.2.0",
+    "tesseract.js": "^5.1.0"
   }
 }

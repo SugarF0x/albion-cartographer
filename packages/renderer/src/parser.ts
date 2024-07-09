@@ -41,7 +41,6 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<{
 
       const [diamondX, diamondY] = [zoneCanvas.width * DIAMOND_PIXEL_POS_ASPECT[0], zoneCanvas.height * DIAMOND_PIXEL_POS_ASPECT[1]]
       const diamondPixelData = zoneCtx.getImageData(diamondX, diamondY, 1, 1).data
-      console.log(diamondPixelData, diamondX, diamondY)
       const isDiamondValid = DIAMOND_COLORS.some(colors => (
         colors.every((color, index) => (
           inRange(color, diamondPixelData[index] - 1, diamondPixelData[index] + 2)

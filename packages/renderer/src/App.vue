@@ -3,6 +3,7 @@ import { screenCapture } from '#preload'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { parse } from './parser'
 import { preprocessImageForOCR } from './processor'
+import { read } from './reader'
 
 const imgData = ref<string[]>([])
 
@@ -15,6 +16,10 @@ onMounted(() => {
     imgData.value.push(await preprocessImageForOCR(images.zoneNameImage))
     imgData.value.push(await preprocessImageForOCR(images.portalNameImage))
     imgData.value.push(await preprocessImageForOCR(images.portalTimeImage))
+
+    for (const image of imgData.value.slice(3)) {
+      console.log(await read(image))
+    }
   })
 
   onBeforeUnmount(unsubscribe)
