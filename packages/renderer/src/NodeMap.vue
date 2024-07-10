@@ -5,13 +5,10 @@ import { screenCapture } from '#preload'
 import { parse } from '/@/parser'
 import { preprocessImageForOCR } from '/@/processor'
 import { read } from '/@/reader'
-import { useCustomLinks } from '/@/linksStore'
-import { add, millisecondsToSeconds } from 'date-fns'
-
-const links = useCustomLinks()
+import { addLink } from '/@/linksStore'
 
 onMounted(() => {
-  const element = chart(links)
+  const element = chart()
   if (!element) return
 
   element.removeAttribute('width')
@@ -31,7 +28,7 @@ onMounted(() => {
     const target = String(await read(portalName))
     const time = Number(await read(portalTime))
 
-    links.value = [...links.value, { source, target, expiration: add(new Date(), { seconds: millisecondsToSeconds(time) }).toISOString() }, { source: target, target: source, expiration: add(new Date(), { seconds: millisecondsToSeconds(time) }).toISOString() }]
+    addLink(source, target, time)
   })
 
   onBeforeUnmount(unsubscribe)

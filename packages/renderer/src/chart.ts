@@ -3,8 +3,8 @@ import { Road, Zone } from '/@/data/zone'
 import { ZoneToLinksMap, ZoneToNodeMap } from '/@/data/staticZones'
 import * as d3 from 'd3'
 import { cloneDeep } from 'lodash'
-import { computed, type Ref, watch } from 'vue'
-import { type CustomLinkData } from '/@/linksStore'
+import { computed, watch } from 'vue'
+import { storeLinks } from '/@/linksStore'
 
 function linkToString(value: Datum) {
   if (typeof value.source !== 'object' || typeof value.target !== 'object') return `${value.source}/${value.target}`
@@ -61,7 +61,7 @@ function getLinkStrength({ source, target }: Datum): number {
   return 2.1
 }
 
-export function chart(storeLinks: Ref<CustomLinkData[]>) {
+export function chart() {
   const width = 1048
   const height = 1048
 
