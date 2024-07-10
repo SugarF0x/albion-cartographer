@@ -16,7 +16,6 @@ export async function read(input: { image: string, meta?: { isRed: boolean } }):
   await worker.terminate()
   const text = ret.data.text
 
-  console.log('read: ', text)
   if (!meta) return getName(text)
 
   const timeElements = text.split(' ').map(Number)

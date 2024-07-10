@@ -3,7 +3,8 @@ import { Road, Zone } from '/@/data/zone'
 import { ZoneToLinksMap, ZoneToNodeMap } from '/@/data/staticZones'
 import * as d3 from 'd3'
 import { cloneDeep } from 'lodash'
-import { computed, reactive, watch } from 'vue'
+import { computed, type Ref, watch } from 'vue'
+import { type CustomLinkData } from '/@/linksStore'
 
 function linkToString(value: Datum) {
   if (typeof value.source !== 'object' || typeof value.target !== 'object') return `${value.source}/${value.target}`
@@ -60,20 +61,25 @@ function getLinkStrength({ source, target }: Datum): number {
   return 2.1
 }
 
-export function chart() {
+export function chart(storeLinks: Ref<CustomLinkData[]>) {
   const width = 1048
   const height = 1048
 
-  const activeLinks = reactive(cloneDeep(inputLinks))
+  const activeLinks = computed(() => {
+    const results = cloneDeep(inputLinks)
+    for (const { source, target } of storeLinks.value) results.push({ source, target })
+    return results
+  })
+
   const activeLinksMap = computed(() => {
-    return activeLinks.reduce<Record<string, string[]>>((acc, val) => {
+    return activeLinks.value.reduce<Record<string, string[]>>((acc, val) => {
       acc[val.source as string] ??= []
       acc[val.source as string].push(val.target as string)
       return acc
     }, {})
   })
 
-  const { nodes, links } = cloneDeep({ nodes: inputNodes, links: inputLinks })
+  const { nodes, links } = cloneDeep({ nodes: inputNodes, links: activeLinks.value })
 
   const simulation = d3.forceSimulation(nodes as ProcessedNode[])
     .force('link', d3.forceLink(links)
@@ -148,5 +154,5 @@ export function chart() {
     },
   )
 
-  return [svg.node(), activeLinks] as const
+  return svg.node()
 }

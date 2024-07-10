@@ -5,9 +5,13 @@ import { screenCapture } from '#preload'
 import { parse } from '/@/parser'
 import { preprocessImageForOCR } from '/@/processor'
 import { read } from '/@/reader'
+import { useCustomLinks } from '/@/linksStore'
+import { add, millisecondsToSeconds } from 'date-fns'
+
+const links = useCustomLinks()
 
 onMounted(() => {
-  const [element, links] = chart()
+  const element = chart(links)
   if (!element) return
 
   element.removeAttribute('width')
@@ -17,18 +21,17 @@ onMounted(() => {
   const unsubscribe = screenCapture(async (data, position) => {
     const images = await parse(data, position)
 
-    const [zoneName, portalName/*, portalTime*/] = await Promise.all([
+    const [zoneName, portalName, portalTime] = await Promise.all([
       preprocessImageForOCR(images.zoneNameImage),
       preprocessImageForOCR(images.portalNameImage),
       preprocessImageForOCR(images.portalTimeImage, { time: true }),
     ])
 
-    const source = await read(zoneName)
-    const target = await read(portalName)
-    console.log({ source, target })
-    // const time = await read(portalTime)
+    const source = String(await read(zoneName))
+    const target = String(await read(portalName))
+    const time = Number(await read(portalTime))
 
-    links.push({ source, target }, { source: target, target: source })
+    links.value = [...links.value, { source, target, expiration: add(new Date(), { seconds: millisecondsToSeconds(time) }).toISOString() }, { source: target, target: source, expiration: add(new Date(), { seconds: millisecondsToSeconds(time) }).toISOString() }]
   })
 
   onBeforeUnmount(unsubscribe)
