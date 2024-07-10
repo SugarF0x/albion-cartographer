@@ -1,14 +1,23 @@
 import { createWorker } from 'tesseract.js'
+import { hoursToMilliseconds, minutesToMilliseconds, secondsToMilliseconds } from 'date-fns'
 
-export async function read(data: string, time?: boolean): Promise<string> {
+export async function read(input: { image: string, meta?: { isRed: boolean } }): Promise<string | number> {
+  const { image, meta } = input
+
   const worker = await createWorker('eng', 1, {
     workerPath: `${location.origin}/ocr/worker.js`,
     corePath: `${location.origin}/ocr/core.js`,
   })
 
-  if (time) await worker.setParameters({ tessedit_char_whitelist: ' 0123456789' })
+  if (meta) await worker.setParameters({ tessedit_char_whitelist: ' 0123456789' })
 
-  const ret = await worker.recognize(data)
+  const ret = await worker.recognize(image)
   await worker.terminate()
-  return ret.data.text
+  const text = ret.data.text
+
+  if (!meta) return text
+
+  const timeElements = text.split(' ').map(Number)
+  if (!meta.isRed) return hoursToMilliseconds(timeElements[0]) + minutesToMilliseconds(timeElements[1])
+  return minutesToMilliseconds(timeElements[0]) + secondsToMilliseconds(timeElements[1])
 }

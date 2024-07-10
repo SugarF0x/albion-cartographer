@@ -55,6 +55,7 @@
     "vue-tsc": "2.0.26"
   },
   "dependencies": {
+    "date-fns": "^3.6.0",
     "electron-updater": "6.2.1",
     "lodash": "^4.17.21",
     "node-global-key-listener": "^0.3.0",

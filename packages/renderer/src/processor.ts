@@ -1,4 +1,8 @@
-export function preprocessImageForOCR(data: string, options?: { time?: boolean }): Promise<string> {
+interface TimeMeta {
+  isRed: boolean
+}
+
+export function preprocessImageForOCR(data: string, options?: { time?: boolean }): Promise<{ image: string, meta?: TimeMeta }> {
   const { time } = options ?? {}
 
   return new Promise(resolve => {
@@ -16,6 +20,7 @@ export function preprocessImageForOCR(data: string, options?: { time?: boolean }
 
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
 
+      const meta = getTimeMeta(imageData, time)
       toGrayscale(ctx, imageData)
       increaseContrast(ctx, imageData)
       reduceNoise(canvas, ctx, imageData)
@@ -23,11 +28,26 @@ export function preprocessImageForOCR(data: string, options?: { time?: boolean }
       invertToBlack(canvas, ctx)
       if (time) removeSmallCharacters(canvas, ctx)
 
-      resolve(canvas.toDataURL())
+      resolve({ image: canvas.toDataURL(), meta })
     }
 
     image.src = data
   })
+}
+
+function getTimeMeta(imageData: ImageData, time?: boolean): TimeMeta | undefined {
+  if (!time) return undefined
+
+  const { data } = imageData
+  for (let i = 0; i < data.length; i+=4) {
+    const r = data[i]
+    const g = data[i + 1]
+    const b = data[i + 2]
+
+    if (r > 200 && g < 100 && b < 100) return { isRed: true }
+  }
+
+  return { isRed: false }
 }
 
 function toGrayscale(ctx: CanvasRenderingContext2D, imageData: ImageData) {

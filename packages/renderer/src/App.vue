@@ -13,13 +13,19 @@ onMounted(() => {
     const images = await parse(data, position)
 
     imgData.value.push(images.zoneImage, images.portalImage)
-    imgData.value.push(await preprocessImageForOCR(images.zoneNameImage))
-    imgData.value.push(await preprocessImageForOCR(images.portalNameImage))
-    imgData.value.push(await preprocessImageForOCR(images.portalTimeImage, { time: true }))
 
-    console.log(await read(imgData.value[3]))
-    console.log(await read(imgData.value[4]))
-    console.log(await read(imgData.value[5], true))
+    const items = await Promise.all([
+      preprocessImageForOCR(images.zoneNameImage),
+      preprocessImageForOCR(images.portalNameImage),
+      preprocessImageForOCR(images.portalTimeImage, { time: true }),
+    ])
+
+    imgData.value.push(...items.map(e => e.image))
+    const [zoneName, portalName, portalTime] = items
+
+    console.log(await read(zoneName))
+    console.log(await read(portalName))
+    console.log(await read(portalTime))
   })
 
   onBeforeUnmount(unsubscribe)
