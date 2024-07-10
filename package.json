@@ -60,6 +60,7 @@
     "d3": "^7.9.0",
     "date-fns": "^3.6.0",
     "electron-updater": "6.2.1",
+    "fuse.js": "^7.0.0",
     "lodash": "^4.17.21",
     "node-global-key-listener": "^0.3.0",
     "node-screenshots": "^0.2.0",

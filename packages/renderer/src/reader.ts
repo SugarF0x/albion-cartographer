@@ -1,5 +1,6 @@
 import { createWorker } from 'tesseract.js'
 import { hoursToMilliseconds, minutesToMilliseconds, secondsToMilliseconds } from 'date-fns'
+import { getName } from '/@/fuzeZoneName'
 
 export async function read(input: { image: string, meta?: { isRed: boolean } }): Promise<string | number> {
   const { image, meta } = input
@@ -15,7 +16,8 @@ export async function read(input: { image: string, meta?: { isRed: boolean } }):
   await worker.terminate()
   const text = ret.data.text
 
-  if (!meta) return text
+  console.log('read: ', text)
+  if (!meta) return getName(text)
 
   const timeElements = text.split(' ').map(Number)
   if (!meta.isRed) return hoursToMilliseconds(timeElements[0]) + minutesToMilliseconds(timeElements[1])

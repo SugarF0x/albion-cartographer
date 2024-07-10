@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import { chart } from './chart'
-import { Road, Zone } from '/@/data/zone'
 import { onBeforeUnmount, onMounted } from 'vue'
 import { screenCapture } from '#preload'
+import { parse } from '/@/parser'
+import { preprocessImageForOCR } from '/@/processor'
+import { read } from '/@/reader'
 
 onMounted(() => {
   const [element, links] = chart()
@@ -12,16 +14,21 @@ onMounted(() => {
   element.removeAttribute('height')
   document.querySelector('#chart')?.appendChild(element)
 
-  const stack = [
-    { source: Zone.LYMHURST, target: Road.COROS_ALIEAM }, { source: Road.COROS_ALIEAM, target: Zone.LYMHURST },
-    { source: Road.COROS_ALIEAM, target: Road.CASES_UGUMLOS }, { source: Road.CASES_UGUMLOS, target: Road.COROS_ALIEAM },
-    { source: Road.CASES_UGUMLOS, target: Road.COUES_EXAKROM }, { source: Road.COUES_EXAKROM, target: Road.CASES_UGUMLOS },
-    { source: Road.COUES_EXAKROM, target: Road.CERES_IOOINUM }, { source: Road.CERES_IOOINUM, target: Road.COUES_EXAKROM },
-    { source: Road.CERES_IOOINUM, target: Zone.PEN_GENT }, { source: Zone.PEN_GENT, target: Road.CERES_IOOINUM },
-  ]
+  const unsubscribe = screenCapture(async (data, position) => {
+    const images = await parse(data, position)
 
-  const unsubscribe = screenCapture(async () => {
-    links.push(stack.shift()!, stack.shift()!)
+    const [zoneName, portalName/*, portalTime*/] = await Promise.all([
+      preprocessImageForOCR(images.zoneNameImage),
+      preprocessImageForOCR(images.portalNameImage),
+      preprocessImageForOCR(images.portalTimeImage, { time: true }),
+    ])
+
+    const source = await read(zoneName)
+    const target = await read(portalName)
+    console.log({ source, target })
+    // const time = await read(portalTime)
+
+    links.push({ source, target }, { source: target, target: source })
   })
 
   onBeforeUnmount(unsubscribe)

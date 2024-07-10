@@ -39,7 +39,7 @@ interface AO2DExitAttrs {
 
 const nodes = data.nodes as AO2DNode[]
 
-const toSnakeCase = (val: string) => val
+export const toSnakeCase = (val: string) => val
   .replace(/'/g,'')
   .replace(/\W+/g, ' ')
   .split(/ |\B(?=[A-Z])/)
