@@ -3,7 +3,7 @@ import { Road, Zone } from '/@/data/zone'
 import { ZoneToLinksMap, ZoneToNodeMap } from '/@/data/staticZones'
 import * as d3 from 'd3'
 import { cloneDeep } from 'lodash'
-import { reactive, watch } from 'vue'
+import { computed, reactive, watch } from 'vue'
 
 function linkToString(value: Datum) {
   if (typeof value.source !== 'object' || typeof value.target !== 'object') return `${value.source}/${value.target}`
@@ -64,6 +64,15 @@ export function chart() {
   const width = 1048
   const height = 1048
 
+  const activeLinks = reactive(cloneDeep(inputLinks))
+  const activeLinksMap = computed(() => {
+    return activeLinks.reduce<Record<string, string[]>>((acc, val) => {
+      acc[val.source as string] ??= []
+      acc[val.source as string].push(val.target as string)
+      return acc
+    }, {})
+  })
+
   const { nodes, links } = cloneDeep({ nodes: inputNodes, links: inputLinks })
 
   const simulation = d3.forceSimulation(nodes as ProcessedNode[])
@@ -111,33 +120,31 @@ export function chart() {
     node
       .attr('cx', d => (d as ProcessedNode).x ?? 0)
       .attr('cy', d => (d as ProcessedNode).y ?? 0)
+      .attr('opacity', d => d.id in activeLinksMap.value ? 1 : .25)
   }
 
   simulation.on('tick', ticked)
 
-  const activeLinks = reactive(cloneDeep(inputLinks))
   watch(activeLinks, value => {
-    console.log('ass cock balls')
+    const newLinks = cloneDeep(value)
+    link = link.data(newLinks)
 
-      const newLinks = cloneDeep(value)
-      link = link.data(newLinks)
+    link.exit().remove()
 
-      link.exit().remove()
+    link = link.enter()
+      .append('line')
+      .attr('stroke', datum => PATH_STRINGS.includes(linkToString(datum)) ? 'red' : '#999')
+      .attr('stroke-width', datum => PATH_STRINGS.includes(linkToString(datum)) ? 5 : 1)
+      .merge(link)
 
-      link = link.enter()
-        .append('line')
-        .attr('stroke', datum => PATH_STRINGS.includes(linkToString(datum)) ? 'red' : '#999')
-        .attr('stroke-width', datum => PATH_STRINGS.includes(linkToString(datum)) ? 5 : 1)
-        .merge(link)
-
-      simulation
-        .nodes(nodes as ProcessedNode[])
-        .force('link', d3.forceLink(newLinks)
-          .id(d => (d as ProcessedNode).id)
-          .distance(10)
-          .strength(getLinkStrength),
-        )
-        .alpha(.3).restart()
+    simulation
+      .nodes(nodes as ProcessedNode[])
+      .force('link', d3.forceLink(newLinks)
+        .id(d => (d as ProcessedNode).id)
+        .distance(10)
+        .strength(getLinkStrength),
+      )
+      .alpha(.3).restart()
     },
   )
 
