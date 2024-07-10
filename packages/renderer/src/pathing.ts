@@ -2,7 +2,7 @@ import type { Zone } from '/@/data/zone'
 import { ZoneToLinksMap } from '/@/data/staticZones'
 import type * as d3 from 'd3'
 
-type Datum = d3.SimulationLinkDatum<Record<string, unknown>>
+export type Datum = d3.SimulationLinkDatum<Record<string, unknown>>
 
 export function findShortestPath(startNode: Zone, endNode: Zone): Datum[] | null {
   if (startNode === endNode) return []

@@ -4,6 +4,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { parse } from './parser'
 import { preprocessImageForOCR } from './processor'
 import { read } from './reader'
+import NodeMap from './NodeMap.vue'
 
 const imgData = ref<string[]>([])
 
@@ -33,8 +34,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <h1>cock and balls</h1>
-  <img v-for="img of imgData" :key="img" :src="img" alt="" style="max-width: 800px; max-height: 400px;">
+  <NodeMap />
 </template>
 
 <style lang="scss">
@@ -51,7 +51,7 @@ html, body {
   width: 100vw;
 }
 
-html, body, #__nuxt {
+html, body, #app {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -61,11 +61,9 @@ html {
   background-image: linear-gradient(to bottom, $c 0%, darken($c, 15%) 100%);
 }
 
-* {
-  color: white;
-}
-
 body {
+  color: white;
+
   background-image:
     linear-gradient(0deg,
       $n 0%, $n 9px,
