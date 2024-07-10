@@ -1,10 +1,12 @@
-export function preprocessImageForOCR(data: string): Promise<string> {
+export function preprocessImageForOCR(data: string, options?: { time?: boolean }): Promise<string> {
+  const { time } = options ?? {}
+
   return new Promise(resolve => {
     const image = new Image()
 
     image.onload = () => {
       const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
+      const ctx = canvas.getContext('2d', { willReadFrequently: true })
       if (!ctx) throw new Error('2D context not available')
 
       canvas.width = image.width
@@ -82,6 +84,10 @@ export function preprocessImageForOCR(data: string): Promise<string> {
       }
 
       ctx.putImageData(imageData, 0, 0)
+
+      invertToBlack(canvas, ctx)
+      if (time) removeSmallCharacters(canvas, ctx)
+
       resolve(canvas.toDataURL())
     }
 
@@ -127,4 +133,86 @@ function getOtsuThreshold(data: Uint8ClampedArray): number {
   }
 
   return threshold
+}
+
+function invertToBlack(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+  const data = imageData.data
+
+  if (data[0] < 128) return
+  for (let y = 0; y < canvas.height; y++) {
+    for (let x = 0; x < canvas.width; x++) {
+      const index = (y * canvas.width + x) * 4
+      const target = data[index] < 128 ? 255 : 0
+      data[index] = target
+      data[index + 1] = target
+      data[index + 2] = target
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0)
+}
+
+function removeSmallCharacters(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+  const data = imageData.data
+
+  const boundingBoxes = findBoundingBoxes(data, canvas.width, canvas.height)
+
+  const maxBoxHeight = boundingBoxes.reduce((acc, val) => Math.max(acc, val.height), 0)
+  const heightThreshold = maxBoxHeight * .9
+  const filteredBoxes = boundingBoxes.filter(box => box.height > heightThreshold)
+
+  const boxesData = filteredBoxes.map(box => ctx.getImageData(box.x, box.y, box.width, box.height))
+  ctx.fillStyle = 'black'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+  filteredBoxes.forEach((box, index) => {
+    ctx.putImageData(boxesData[index], box.x, box.y)
+  })
+}
+
+function findBoundingBoxes(data: Uint8ClampedArray, width: number, height: number) {
+  const boxes: { x: number, y: number, width: number, height: number }[] = []
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const index = (y * width + x) * 4
+      if (data[index] < 128) continue
+
+      const box = floodFill(data, width, height, x, y)
+      if (box) boxes.push(box)
+    }
+  }
+
+  return boxes
+}
+
+function floodFill(data: Uint8ClampedArray, width: number, height: number, startX: number, startY: number) {
+  const stack = [[startX, startY]]
+  let minX = startX
+  let maxX = startX
+  let minY = startY
+  let maxY = startY
+
+  while (stack.length) {
+    const item = stack.pop()
+    if (!item) throw new Error('oops')
+    const [x, y] = item
+
+    if (x < 0 || x >= width || y < 0 || y >= height) continue
+    const index = (y * width + x) * 4
+    if (data[index] < 128) continue
+    data[index] = 0
+
+    minX = Math.min(minX, x)
+    maxX = Math.max(maxX, x)
+    minY = Math.min(minY, y)
+    maxY = Math.max(maxY, y)
+
+    stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1])
+  }
+
+  if (maxX - minX < 2 || maxY - minY < 2) return null
+  return { x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1 }
 }

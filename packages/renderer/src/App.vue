@@ -15,7 +15,7 @@ onMounted(() => {
     imgData.value.push(images.zoneImage, images.portalImage)
     imgData.value.push(await preprocessImageForOCR(images.zoneNameImage))
     imgData.value.push(await preprocessImageForOCR(images.portalNameImage))
-    imgData.value.push(await preprocessImageForOCR(images.portalTimeImage))
+    imgData.value.push(await preprocessImageForOCR(images.portalTimeImage, { time: true }))
 
     for (const image of imgData.value.slice(3)) {
       console.log(await read(image))
