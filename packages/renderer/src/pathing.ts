@@ -1,21 +1,23 @@
-import type { Zone } from '/@/data/zone'
-import { ZoneToLinksMap } from '/@/data/staticZones'
 import type * as d3 from 'd3'
+import { ref } from 'vue'
+import { activeLinksMap } from '/@/linksStore'
 
 export type Datum = d3.SimulationLinkDatum<Record<string, unknown>>
 
-export function findShortestPath(startNode: Zone, endNode: Zone): Datum[] | null {
-  if (startNode === endNode) return []
+export const pathfinderRoute = ref<Datum[]>([])
 
-  const queue: Zone[][] = [[startNode]]
-  const visited: Set<Zone> = new Set([startNode])
+export function findShortestPath(startNode: string, endNode: string) {
+  if (startNode === endNode) return false
+
+  const queue: string[][] = [[startNode]]
+  const visited: Set<string> = new Set([startNode])
 
   while (queue.length > 0) {
     const path = queue.shift()
     if (!path) continue
 
     const node = path[path.length - 1]
-    const neighbors = ZoneToLinksMap[node] || []
+    const neighbors = activeLinksMap.value[node] || []
 
     for (const neighbor of neighbors) {
       if (neighbor === endNode) {
@@ -25,7 +27,8 @@ export function findShortestPath(startNode: Zone, endNode: Zone): Datum[] | null
         for (let i = 0; i < fullPath.length - 1; i++)
           result.push({ source: fullPath[i], target: fullPath[i + 1] })
 
-        return result
+        pathfinderRoute.value = result
+        return true
       }
 
       if (!visited.has(neighbor)) {
@@ -35,5 +38,5 @@ export function findShortestPath(startNode: Zone, endNode: Zone): Datum[] | null
     }
   }
 
-  return null
+  return false
 }

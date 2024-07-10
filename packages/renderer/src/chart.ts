@@ -1,10 +1,11 @@
 import type { Datum } from '/@/pathing'
 import { Road, Zone } from '/@/data/zone'
-import { ZoneToLinksMap, ZoneToNodeMap } from '/@/data/staticZones'
+import { ZoneToNodeMap } from '/@/data/staticZones'
 import * as d3 from 'd3'
 import { cloneDeep } from 'lodash'
-import { computed, watch } from 'vue'
-import { storeLinks } from '/@/linksStore'
+import { watch } from 'vue'
+import { activeLinks, activeLinksMap } from '/@/linksStore'
+import { pathfinderRoute } from '/@/pathing'
 
 function linkToString(value: Datum) {
   if (typeof value.source !== 'object' || typeof value.target !== 'object') return `${value.source}/${value.target}`
@@ -18,10 +19,6 @@ const PATH_STRINGS: string[] = []
 // const PATH_LOCATIONS: Zone[] = PATH?.reduce<Zone[]>((acc, val) => Array.from(new Set([...acc, val.source as Zone, val.target as Zone])), []) ?? []
 
 const inputNodes = [...Object.values(Zone), ...Object.values(Road)].map(zone => ({ id: zone }))
-const inputLinks = Object.entries(ZoneToLinksMap).reduce<Datum[]>((acc, [zone, links]) => {
-  for (const link of links) acc.push({ source: zone, target: link })
-  return acc
-}, [])
 
 type ProcessedNode = d3.SimulationNodeDatum & typeof inputNodes[number]
 
@@ -64,20 +61,6 @@ function getLinkStrength({ source, target }: Datum): number {
 export function chart() {
   const width = 1048
   const height = 1048
-
-  const activeLinks = computed(() => {
-    const results = cloneDeep(inputLinks)
-    for (const { source, target } of storeLinks.value) results.push({ source, target })
-    return results
-  })
-
-  const activeLinksMap = computed(() => {
-    return activeLinks.value.reduce<Record<string, string[]>>((acc, val) => {
-      acc[val.source as string] ??= []
-      acc[val.source as string].push(val.target as string)
-      return acc
-    }, {})
-  })
 
   const { nodes, links } = cloneDeep({ nodes: inputNodes, links: activeLinks.value })
 
@@ -137,6 +120,8 @@ export function chart() {
 
     link.exit().remove()
 
+    // TODO: figure out how to update static styles of nodes (e.g. opacity that is now in the ticked function)
+
     link = link.enter()
       .append('line')
       .attr('stroke', datum => PATH_STRINGS.includes(linkToString(datum)) ? 'red' : '#999')
@@ -153,6 +138,10 @@ export function chart() {
       .alpha(.3).restart()
     },
   )
+
+  watch(pathfinderRoute, () => {
+    // TODO: color respective links
+  })
 
   return svg.node()
 }

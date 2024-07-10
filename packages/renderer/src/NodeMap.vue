@@ -1,11 +1,22 @@
 <script lang="ts" setup>
 import { chart } from './chart'
-import { onBeforeUnmount, onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { screenCapture } from '#preload'
 import { parse } from '/@/parser'
 import { preprocessImageForOCR } from '/@/processor'
 import { read } from '/@/reader'
 import { addLink } from '/@/linksStore'
+import ZoneSelector from './ZoneSelector.vue'
+import { findShortestPath, pathfinderRoute } from '/@/pathing'
+
+const from = ref('')
+const to = ref('')
+
+function findPath() {
+  if (!from.value || !to.value) return
+  console.log('searching')
+  findShortestPath(from.value, to.value)
+}
 
 onMounted(() => {
   const element = chart()
@@ -39,7 +50,14 @@ onMounted(() => {
   <div class="container">
     <div id="chart" />
     <div class="controls-container">
-      some controls here
+      from
+      <ZoneSelector v-model="from" />
+      to
+      <ZoneSelector v-model="to" />
+      <button @click="findPath()">search</button>
+      <button @click="pathfinderRoute.length = 0">clear</button>
+      path
+      {{ pathfinderRoute.map(e => e.target) }}
     </div>
   </div>
 </template>
@@ -59,6 +77,13 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+
+  background-color: #323B44;
+  color: white;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #5d6876;
+  box-sizing: border-box;
 
   :deep(#controls) {
     flex-grow: 1;

@@ -1,6 +1,9 @@
 import { useLocalStorage } from '@vueuse/core'
 import { isBefore, add, millisecondsToSeconds } from 'date-fns'
 import { computed } from 'vue'
+import { cloneDeep } from 'lodash'
+import { ZoneToLinksMap } from '/@/data/staticZones'
+import type { Datum } from '/@/pathing'
 
 export interface CustomLinkData {
   source: string
@@ -14,6 +17,25 @@ export const zoneToStoreLinksMap = computed(() => {
     if (isBefore(new Date(), new Date(val.expiration))) return acc
     acc[val.source] ??= []
     if (!(val.target in acc[val.source])) acc[val.source].push(val.target)
+    return acc
+  }, {})
+})
+
+const inputLinks = Object.entries(ZoneToLinksMap).reduce<Datum[]>((acc, [zone, links]) => {
+  for (const link of links) acc.push({ source: zone, target: link })
+  return acc
+}, [])
+
+export const activeLinks = computed(() => {
+  const results = cloneDeep(inputLinks)
+  for (const { source, target } of storeLinks.value) results.push({ source, target })
+  return results
+})
+
+export const activeLinksMap = computed(() => {
+  return activeLinks.value.reduce<Record<string, string[]>>((acc, val) => {
+    acc[val.source as string] ??= []
+    acc[val.source as string].push(val.target as string)
     return acc
   }, {})
 })
