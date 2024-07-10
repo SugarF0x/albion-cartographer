@@ -17,9 +17,9 @@ onMounted(() => {
     imgData.value.push(await preprocessImageForOCR(images.portalNameImage))
     imgData.value.push(await preprocessImageForOCR(images.portalTimeImage, { time: true }))
 
-    for (const image of imgData.value.slice(3)) {
-      console.log(await read(image))
-    }
+    console.log(await read(imgData.value[3]))
+    console.log(await read(imgData.value[4]))
+    console.log(await read(imgData.value[5], true))
   })
 
   onBeforeUnmount(unsubscribe)
