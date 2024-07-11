@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import { cloneDeep } from 'lodash'
 import { ZoneToLinksMap } from '/@/data/staticZones'
 import type { Datum } from '/@/pathing'
-import type { play } from '/@/audioPlayer'
+import { play } from '/@/audioPlayer'
 import { eventLog } from '/@/eventLog'
 import { z } from 'zod'
 
@@ -16,17 +16,7 @@ export const CustomLinkDataSchema = z.object({
 
 export type CustomLinkData = z.infer<typeof CustomLinkDataSchema>
 
-// TODO: refactor this to avoid copies
-
 export const storeLinks = useLocalStorage<CustomLinkData[]>('customLinks', [])
-export const zoneToStoreLinksMap = computed(() => {
-  return storeLinks.value.reduce<Record<string, string[]>>((acc, val) => {
-    if (isBefore(new Date(val.expiration), new Date())) return acc
-    acc[val.source] ??= []
-    if (!(val.target in acc[val.source])) acc[val.source].push(val.target)
-    return acc
-  }, {})
-})
 
 const inputLinks = Object.entries(ZoneToLinksMap).reduce<Datum[]>((acc, [zone, links]) => {
   for (const link of links) acc.push({ source: zone, target: link })
@@ -35,7 +25,10 @@ const inputLinks = Object.entries(ZoneToLinksMap).reduce<Datum[]>((acc, [zone, l
 
 export const activeLinks = computed(() => {
   const results = cloneDeep(inputLinks)
-  for (const { source, target } of storeLinks.value) results.push({ source, target })
+  for (const { source, target, expiration } of storeLinks.value) {
+    if (isBefore(new Date(expiration), new Date())) continue
+    results.push({ source, target }, { source: target, target: source })
+  }
   return results
 })
 
@@ -43,6 +36,16 @@ export const activeLinksMap = computed(() => {
   return activeLinks.value.reduce<Record<string, string[]>>((acc, val) => {
     acc[val.source as string] ??= []
     acc[val.source as string].push(val.target as string)
+    return acc
+  }, {})
+})
+
+export const zoneToStoreLinksMap = computed(() => {
+  return activeLinks.value.reduce<Record<string, string[]>>((acc, val) => {
+    const source = val.source as string
+    const target = val.target as string
+    acc[source] ??= []
+    if (!(target in acc[source])) acc[source].push(target)
     return acc
   }, {})
 })
@@ -68,7 +71,7 @@ scheduleRemoval()
 export function addLink(source: string, target: string, time: number, noSound?: boolean) {
   function innerPlay(sound: Parameters<typeof play>[0]) {
     if (noSound) return
-    innerPlay(sound)
+    play(sound)
   }
 
   const expiration = add(new Date(), { seconds: millisecondsToSeconds(time) }).toISOString()
@@ -85,5 +88,5 @@ export function addLink(source: string, target: string, time: number, noSound?: 
 
   eventLog.push(`Added new link: ${source} > ${target}`)
   innerPlay('open')
-  storeLinks.value.push({ source, target, expiration }, { source: target, target: source, expiration })
+  storeLinks.value.push({ source, target, expiration })
 }
