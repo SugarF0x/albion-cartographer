@@ -3,7 +3,7 @@ import { Zone, Road } from '/@/data/zone'
 import { ref, watch } from 'vue'
 
 const model = defineModel<string | undefined>()
-const input = ref('')
+const input = ref(model.value ?? '')
 
 watch(model, value => { input.value = value ?? '' })
 

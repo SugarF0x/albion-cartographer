@@ -1,22 +1,32 @@
 <script lang="ts" setup>
 import { chart } from './chart'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { screenCapture } from '#preload'
 import { parse } from '/@/parser'
 import { preprocessImageForOCR } from '/@/processor'
 import { read } from '/@/reader'
-import { addLink } from '/@/linksStore'
+import { activeLinksMap, addLink } from '/@/linksStore'
 import ZoneSelector from './ZoneSelector.vue'
 import { findShortestPath, pathfinderRoute } from '/@/pathing'
 import { play, audioVolume } from '/@/audioPlayer'
 
-const from = ref('')
-const to = ref('')
+const from = ref('LYMHURST')
+const to = ref('SEBOS_AVOIROM')
+const autoSearch = ref(false)
+
+watch(activeLinksMap, () => {
+  if (!autoSearch.value) return
+  findPath()
+})
 
 function findPath() {
   if (!from.value || !to.value) return
   console.log('searching')
-  findShortestPath(from.value, to.value)
+  const didFind = findShortestPath(from.value, to.value)
+  if (autoSearch.value && didFind) {
+    play('alert')
+    autoSearch.value = false
+  }
 }
 
 onMounted(() => {
@@ -61,7 +71,9 @@ onMounted(() => {
       <ZoneSelector v-model="from" />
       to
       <ZoneSelector v-model="to" />
-      <button @click="findPath()">search</button>
+      <button :disabled="autoSearch" @click="findPath()">search</button>
+      auto seach
+      <input v-model="autoSearch" type="checkbox" />
       <button @click="pathfinderRoute.length = 0">clear</button>
       path
       {{ pathfinderRoute.map(e => e.target) }}
