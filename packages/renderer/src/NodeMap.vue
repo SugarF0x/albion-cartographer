@@ -5,10 +5,12 @@ import { screenCapture } from '#preload'
 import { parse } from '/@/parser'
 import { preprocessImageForOCR } from '/@/processor'
 import { read } from '/@/reader'
-import { activeLinksMap, addLink } from '/@/linksStore'
+import { activeLinksMap, addLink, storeLinks } from '/@/linksStore'
 import ZoneSelector from './ZoneSelector.vue'
 import { findShortestPath, pathfinderRoute } from '/@/pathing'
 import { play, audioVolume } from '/@/audioPlayer'
+import { eventLog } from './eventLog'
+import { takeRight } from 'lodash'
 
 const from = ref('LYMHURST')
 const to = ref('SEBOS_AVOIROM')
@@ -23,6 +25,7 @@ function findPath() {
   if (!from.value || !to.value) return
   const didFind = findShortestPath(from.value, to.value)
   if (autoSearch.value && didFind) {
+    eventLog.push(`Found path: ${from.value} > ${to.value}`)
     play('alert')
     autoSearch.value = false
   }
@@ -52,6 +55,7 @@ onMounted(() => {
 
       addLink(source, target, time)
     } catch (e) {
+      eventLog.push(String(e))
       play('error')
     }
   })
@@ -74,8 +78,11 @@ onMounted(() => {
       auto seach
       <input v-model="autoSearch" type="checkbox" />
       <button @click="pathfinderRoute.length = 0">clear</button>
+      <button @dblclick="storeLinks = []">clear storage</button>
       path
-      {{ pathfinderRoute.map(e => e.target) }}
+      <pre>{{ JSON.stringify(pathfinderRoute.map(e => e.target), null, 2) }}</pre>
+      events (last 25)
+      <pre>{{ JSON.stringify(takeRight(eventLog, 25), null, 2) }}</pre>
     </div>
   </div>
 </template>

@@ -5,6 +5,7 @@ import { cloneDeep } from 'lodash'
 import { ZoneToLinksMap } from '/@/data/staticZones'
 import type { Datum } from '/@/pathing'
 import { play } from '/@/audioPlayer'
+import { eventLog } from '/@/eventLog'
 
 export interface CustomLinkData {
   source: string
@@ -61,11 +62,18 @@ scheduleRemoval()
 
 export function addLink(source: string, target: string, time: number) {
   const expiration = add(new Date(), { seconds: millisecondsToSeconds(time) }).toISOString()
-  if (isBefore(expiration, new Date())) return play('error')
+  if (isBefore(expiration, new Date())) {
+    eventLog.push(String(new Error(`Link is expired: ${source} > ${target}`)))
+    return play('error')
+  }
 
   const links = zoneToStoreLinksMap.value[source]
-  if (!(!links || !(links.includes(target)))) return play('notification')
+  if (!(!links || !(links.includes(target)))) {
+    eventLog.push(`Duplicate link found: ${source} > ${target}`)
+    return play('notification')
+  }
 
+  eventLog.push(`Added new link: ${source} > ${target}`)
   play('open')
   storeLinks.value.push({ source, target, expiration }, { source: target, target: source, expiration })
 }
