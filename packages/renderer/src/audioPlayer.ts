@@ -1,5 +1,5 @@
 import { getPublicAssetPath } from '/@/getPublicAssetPath'
-import { ref } from 'vue'
+import { useLocalStorage } from '@vueuse/core'
 
 const TRACKS = {
   alert: new Audio(getPublicAssetPath('/sounds/alert.mp3')),
@@ -8,7 +8,7 @@ const TRACKS = {
   open: new Audio(getPublicAssetPath('/sounds/open.mp3')),
 } as const
 
-export const audioVolume = ref(.5)
+export const audioVolume = useLocalStorage('audioVolume', .5)
 
 export function play(track: keyof typeof TRACKS) {
   for (const key in TRACKS) {
