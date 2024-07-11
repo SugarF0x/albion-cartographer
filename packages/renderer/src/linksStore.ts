@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { cloneDeep } from 'lodash'
 import { ZoneToLinksMap } from '/@/data/staticZones'
 import type { Datum } from '/@/pathing'
+import { play } from '/@/audioPlayer'
 
 export interface CustomLinkData {
   source: string
@@ -14,7 +15,7 @@ export interface CustomLinkData {
 export const storeLinks = useLocalStorage<CustomLinkData[]>('customLinks', [])
 export const zoneToStoreLinksMap = computed(() => {
   return storeLinks.value.reduce<Record<string, string[]>>((acc, val) => {
-    if (isBefore(new Date(), new Date(val.expiration))) return acc
+    if (isBefore(new Date(val.expiration), new Date())) return acc
     acc[val.source] ??= []
     if (!(val.target in acc[val.source])) acc[val.source].push(val.target)
     return acc
@@ -60,8 +61,12 @@ scheduleRemoval()
 
 export function addLink(source: string, target: string, time: number) {
   const expiration = add(new Date(), { seconds: millisecondsToSeconds(time) }).toISOString()
-  if (isBefore(expiration, new Date())) return
+  if (isBefore(expiration, new Date())) return play('error')
 
   const links = zoneToStoreLinksMap.value[source]
-  if (!links || !(target in links)) storeLinks.value.push({ source, target, expiration }, { source: target, target: source, expiration })
+  console.log(source, target, links, zoneToStoreLinksMap.value)
+  if (!(!links || !(links.includes(target)))) return play('notification')
+
+  play('open')
+  storeLinks.value.push({ source, target, expiration }, { source: target, target: source, expiration })
 }
