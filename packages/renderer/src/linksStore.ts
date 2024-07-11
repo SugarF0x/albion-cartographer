@@ -4,14 +4,19 @@ import { computed } from 'vue'
 import { cloneDeep } from 'lodash'
 import { ZoneToLinksMap } from '/@/data/staticZones'
 import type { Datum } from '/@/pathing'
-import { play } from '/@/audioPlayer'
+import type { play } from '/@/audioPlayer'
 import { eventLog } from '/@/eventLog'
+import { z } from 'zod'
 
-export interface CustomLinkData {
-  source: string
-  target: string
-  expiration: string
-}
+export const CustomLinkDataSchema = z.object({
+  source: z.string(),
+  target: z.string(),
+  expiration: z.string().datetime(),
+})
+
+export type CustomLinkData = z.infer<typeof CustomLinkDataSchema>
+
+// TODO: refactor this to avoid copies
 
 export const storeLinks = useLocalStorage<CustomLinkData[]>('customLinks', [])
 export const zoneToStoreLinksMap = computed(() => {
@@ -60,20 +65,25 @@ function scheduleRemoval() {
 removeExpired()
 scheduleRemoval()
 
-export function addLink(source: string, target: string, time: number) {
+export function addLink(source: string, target: string, time: number, noSound?: boolean) {
+  function innerPlay(sound: Parameters<typeof play>[0]) {
+    if (noSound) return
+    innerPlay(sound)
+  }
+
   const expiration = add(new Date(), { seconds: millisecondsToSeconds(time) }).toISOString()
   if (isBefore(expiration, new Date())) {
     eventLog.push(String(new Error(`Link is expired: ${source} > ${target}`)))
-    return play('error')
+    return innerPlay('error')
   }
 
   const links = zoneToStoreLinksMap.value[source]
   if (!(!links || !(links.includes(target)))) {
     eventLog.push(`Duplicate link found: ${source} > ${target}`)
-    return play('notification')
+    return innerPlay('notification')
   }
 
   eventLog.push(`Added new link: ${source} > ${target}`)
-  play('open')
+  innerPlay('open')
   storeLinks.value.push({ source, target, expiration }, { source: target, target: source, expiration })
 }

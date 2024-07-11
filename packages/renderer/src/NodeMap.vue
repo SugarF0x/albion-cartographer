@@ -5,12 +5,14 @@ import { screenCapture } from '#preload'
 import { parse } from '/@/parser'
 import { preprocessImageForOCR } from '/@/processor'
 import { read } from '/@/reader'
-import { activeLinksMap, addLink, storeLinks } from '/@/linksStore'
+import { activeLinksMap, addLink, CustomLinkDataSchema, storeLinks } from '/@/linksStore'
 import ZoneSelector from './ZoneSelector.vue'
 import { findShortestPath, pathfinderRoute } from '/@/pathing'
 import { play, audioVolume } from '/@/audioPlayer'
 import { eventLog } from './eventLog'
 import { takeRight } from 'lodash'
+import { z } from 'zod'
+import { isBefore } from 'date-fns'
 
 const from = ref('LYMHURST')
 const to = ref('SEBOS_AVOIROM')
@@ -28,6 +30,32 @@ function findPath() {
     eventLog.push(`Found path: ${from.value} > ${to.value}`)
     play('alert')
     autoSearch.value = false
+  }
+}
+
+const importValue = ref('')
+
+function exportData() {
+  importValue.value = btoa(JSON.stringify(storeLinks.value))
+  eventLog.push('Pushed current state for export')
+  play('alert')
+}
+
+function importData() {
+  try {
+    const decoded = atob(importValue.value)
+    const data = JSON.parse(decoded)
+    const validatedData = z.array(CustomLinkDataSchema).parse(data)
+    const filteredData = validatedData.filter(e => isBefore(new Date(), new Date(e.expiration)))
+    if (!filteredData.length) return eventLog.push('Failed to import: data is expired')
+    for (const item of filteredData) {
+      const expiration = new Date(item.expiration).valueOf() - Date.now()
+      addLink(item.source, item.target, expiration, true)
+    }
+    eventLog.push('Successfully imported data')
+    play('open')
+  } catch(e) {
+    eventLog.push(String(e) + ' when importing value')
   }
 }
 
@@ -83,6 +111,12 @@ onMounted(() => {
       <pre>{{ JSON.stringify(pathfinderRoute.map(e => e.target), null, 2) }}</pre>
       events (last 25)
       <pre>{{ JSON.stringify(takeRight(eventLog, 25), null, 2) }}</pre>
+
+      <div style="flex-grow: 1" />
+
+      <textarea v-model="importValue" rows="10" />
+      <button :disabled="!importValue" @click="importData">import</button>
+      <button @click="exportData">export</button>
     </div>
   </div>
 </template>
