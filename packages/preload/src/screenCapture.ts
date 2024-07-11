@@ -6,8 +6,10 @@ import { readdirSync, readFileSync } from 'node:fs'
 const v = new GlobalKeyboardListener()
 const monitors = Monitor.all()
 
+const IS_MOCK = false
+
 // dev
-const files = readdirSync('sampleImages')
+const files = IS_MOCK ? readdirSync('sampleImages') : []
 
 function getRandomImage(): [string, [number, number]] {
   const randomIndex = Math.floor(Math.random() * files.length)
@@ -28,8 +30,10 @@ export function screenCapture(onCapture: (data: string, mousePos: [number, numbe
       if (!monitor.isPrimary) continue
 
       // dev
-      onCapture(...getRandomImage())
-      break
+      if (IS_MOCK) {
+        onCapture(...getRandomImage())
+        break
+      }
       // dev end
 
       const image = monitor.captureImageSync()
