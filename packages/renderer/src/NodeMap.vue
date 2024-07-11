@@ -25,11 +25,13 @@ watch(activeLinksMap, () => {
 
 function findPath() {
   if (!from.value || !to.value) return
+  const previousPath = [...pathfinderRoute.value]
   const didFind = findShortestPath(from.value, to.value)
   if (autoSearch.value && didFind) {
+    console.log(previousPath, pathfinderRoute.value)
+    if (previousPath.length !== 0 && previousPath.length <= pathfinderRoute.value.length) return
     eventLog.push(`Found path: ${from.value} > ${to.value}`)
     play('alert')
-    autoSearch.value = false
   }
 }
 
