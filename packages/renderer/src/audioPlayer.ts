@@ -8,7 +8,7 @@ const TRACKS = {
   open: new Audio(getPublicAssetPath('/sounds/open.mp3')),
 } as const
 
-const audioVolume = ref(.5)
+export const audioVolume = ref(.5)
 
 export function play(track: keyof typeof TRACKS) {
   for (const key in TRACKS) {

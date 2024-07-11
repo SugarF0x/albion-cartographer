@@ -8,7 +8,7 @@ import { read } from '/@/reader'
 import { addLink } from '/@/linksStore'
 import ZoneSelector from './ZoneSelector.vue'
 import { findShortestPath, pathfinderRoute } from '/@/pathing'
-import { play } from '/@/audioPlayer'
+import { play, audioVolume } from '/@/audioPlayer'
 
 const from = ref('')
 const to = ref('')
@@ -55,6 +55,8 @@ onMounted(() => {
   <div class="container">
     <div id="chart" />
     <div class="controls-container">
+      audio volume
+      <input v-model="audioVolume" type="range" min="0" max="1" step="0.01" />
       from
       <ZoneSelector v-model="from" />
       to
