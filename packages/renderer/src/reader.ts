@@ -1,21 +1,15 @@
 import { createWorker } from 'tesseract.js'
 import { hoursToMilliseconds, minutesToMilliseconds, secondsToMilliseconds } from 'date-fns'
 import { getName } from '/@/fuzeZoneName'
+import { getPublicAssetPath } from '/@/getPublicAssetPath'
 
 export async function read(input: { image: string, meta?: { isRed: boolean } }): Promise<string | number> {
   const { image, meta } = input
 
-  /**
-   * Path to renderer root dir at current protocol in both DEV and PROD
-   */
-  let base = location.href
-  if (base.at(-1) !== '/') base = base.split('/').slice(0,base.split('/').length-1).join('/')
-  else base = base.slice(0,base.length-1)
-
   const worker = await createWorker('eng', 1, {
-    workerPath: `${base}/ocr/worker.js`,
-    corePath: `${base}/ocr/core.js`,
-    langPath: `${base}/ocr/langs/`,
+    workerPath: getPublicAssetPath('/ocr/worker.js'),
+    corePath: getPublicAssetPath('/ocr/core.js'),
+    langPath: getPublicAssetPath('/ocr/langs/'),
   })
 
   if (meta) await worker.setParameters({ tessedit_char_whitelist: ' 0123456789' })

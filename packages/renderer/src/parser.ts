@@ -1,19 +1,15 @@
 import { inRange } from 'lodash'
 
-/**
- * @throws Error on invalid screenshot or parsing failures
- */
-
 // TODO: avoid multiple reads
 
 export function parse(data: string, mousePos: [x: number, y: number]): Promise<{ zoneImage: string, portalImage: string, zoneNameImage: string, portalNameImage: string, portalTimeImage: string }> {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     const image = new Image()
 
     image.onload = () => {
       const canvas = document.createElement('canvas')
       const ctx = canvas.getContext('2d', { willReadFrequently: true })
-      if (!ctx) throw new Error('2D context not available')
+      if (!ctx) return reject(new Error('2D context not available'))
 
       canvas.width = image.width
       canvas.height = image.height
@@ -29,7 +25,7 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<{
 
       const zoneCanvas = document.createElement('canvas')
       const zoneCtx = zoneCanvas.getContext('2d', { willReadFrequently: true })
-      if (!zoneCtx) throw new Error('2D context not available')
+      if (!zoneCtx) return reject(new Error('2D context not available'))
 
       zoneCanvas.width = zoneWidth
       zoneCanvas.height = zoneHeight
@@ -47,7 +43,7 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<{
         ))
       ))
 
-      if (!isDiamondValid) throw new Error('Screenshot is not valid')
+      if (!isDiamondValid) return reject(new Error('Screenshot is not valid'))
 
       // find portal
 
@@ -67,7 +63,7 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<{
         break
       }
 
-      if (!portalPos.length) throw new Error('Failed to find portal frame')
+      if (!portalPos.length) return reject(new Error('Failed to find portal frame'))
 
       for (let x = portalPos[0]; x > 0; x--) {
         portalPos[0] = x
@@ -87,7 +83,7 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<{
 
       const portalCanvas = document.createElement('canvas')
       const portalCtx = portalCanvas.getContext('2d', { willReadFrequently: true })
-      if (!portalCtx) throw new Error('2D context not available')
+      if (!portalCtx) return reject(new Error('2D context not available'))
 
       portalCanvas.width = portalWidth
       portalCanvas.height = portalHeight
@@ -106,7 +102,7 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<{
 
       const zoneNameCanvas = document.createElement('canvas')
       const zoneNameCtx = zoneNameCanvas.getContext('2d')
-      if (!zoneNameCtx) throw new Error('2D context not available')
+      if (!zoneNameCtx) return reject(new Error('2D context not available'))
 
       zoneNameCanvas.width = zoneNameWidth
       zoneNameCanvas.height = zoneNameHeight
@@ -125,7 +121,7 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<{
 
       const portalNameCanvas = document.createElement('canvas')
       const portalNameCtx = portalNameCanvas.getContext('2d')
-      if (!portalNameCtx) throw new Error('2D context not available')
+      if (!portalNameCtx) return reject(new Error('2D context not available'))
 
       portalNameCanvas.width = portalNameWidth
       portalNameCanvas.height = portalNameHeight
@@ -144,7 +140,7 @@ export function parse(data: string, mousePos: [x: number, y: number]): Promise<{
 
       const portalTimeCanvas = document.createElement('canvas')
       const portalTimeCtx = portalTimeCanvas.getContext('2d')
-      if (!portalTimeCtx) throw new Error('2D context not available')
+      if (!portalTimeCtx) return reject(new Error('2D context not available'))
 
       portalTimeCanvas.width = portalTimeWidth
       portalTimeCanvas.height = portalTimeHeight

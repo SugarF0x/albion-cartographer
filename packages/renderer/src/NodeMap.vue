@@ -8,6 +8,7 @@ import { read } from '/@/reader'
 import { addLink } from '/@/linksStore'
 import ZoneSelector from './ZoneSelector.vue'
 import { findShortestPath, pathfinderRoute } from '/@/pathing'
+import { play } from '/@/audioPlayer'
 
 const from = ref('')
 const to = ref('')
@@ -27,19 +28,23 @@ onMounted(() => {
   document.querySelector('#chart')?.appendChild(element)
 
   const unsubscribe = screenCapture(async (data, position) => {
-    const images = await parse(data, position)
+    try {
+      const images = await parse(data, position)
 
-    const [zoneName, portalName, portalTime] = await Promise.all([
-      preprocessImageForOCR(images.zoneNameImage),
-      preprocessImageForOCR(images.portalNameImage),
-      preprocessImageForOCR(images.portalTimeImage, { time: true }),
-    ])
+      const [zoneName, portalName, portalTime] = await Promise.all([
+        preprocessImageForOCR(images.zoneNameImage),
+        preprocessImageForOCR(images.portalNameImage),
+        preprocessImageForOCR(images.portalTimeImage, { time: true }),
+      ])
 
-    const source = String(await read(zoneName))
-    const target = String(await read(portalName))
-    const time = Number(await read(portalTime))
+      const source = String(await read(zoneName))
+      const target = String(await read(portalName))
+      const time = Number(await read(portalTime))
 
-    addLink(source, target, time)
+      addLink(source, target, time)
+    } catch (e) {
+      play('error')
+    }
   })
 
   onBeforeUnmount(unsubscribe)
