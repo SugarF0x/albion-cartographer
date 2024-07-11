@@ -21,7 +21,6 @@ watch(activeLinksMap, () => {
 
 function findPath() {
   if (!from.value || !to.value) return
-  console.log('searching')
   const didFind = findShortestPath(from.value, to.value)
   if (autoSearch.value && didFind) {
     play('alert')

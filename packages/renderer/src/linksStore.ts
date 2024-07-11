@@ -64,7 +64,6 @@ export function addLink(source: string, target: string, time: number) {
   if (isBefore(expiration, new Date())) return play('error')
 
   const links = zoneToStoreLinksMap.value[source]
-  console.log(source, target, links, zoneToStoreLinksMap.value)
   if (!(!links || !(links.includes(target)))) return play('notification')
 
   play('open')
