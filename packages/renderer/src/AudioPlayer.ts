@@ -1,6 +1,6 @@
 import { getPublicAssetPath } from '/@/getPublicAssetPath'
 import { useLocalStorage } from '@vueuse/core'
-import { reactive, watch } from 'vue'
+import { reactive, watchEffect } from 'vue'
 import { z } from 'zod'
 
 class AudioPlayer {
@@ -17,18 +17,19 @@ class AudioPlayer {
 
   volume = useLocalStorage('audioVolume', this.DEFAULT_VOLUME)
 
-  private onVolumeChange = watch(this.volume, value => {
+  private onVolumeChange = watchEffect(() => {
+    console.log('on changed fired')
     try {
-      z.number().min(this.MIN_VOLUME).max(this.MAX_VOLUME).parse(value)
+      z.number().min(this.MIN_VOLUME).max(this.MAX_VOLUME).parse(this.volume.value)
       for (const key in this.tracks) {
         const audio = this.tracks[key as keyof typeof this.tracks]
-        audio.volume = value
+        audio.volume = this.volume.value
       }
     } catch (e) {
       console.error(e)
       this.volume.value = this.DEFAULT_VOLUME
     }
-  }, { immediate: true })
+  })
 
   private playerPromise = Promise.resolve()
 
