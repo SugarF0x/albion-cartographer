@@ -7,7 +7,10 @@ export type Datum = d3.SimulationLinkDatum<Record<string, unknown>>
 export const pathfinderRoute = ref<Datum[]>([])
 
 export function findShortestPath(startNode: string, endNode: string) {
-  if (startNode === endNode) return false
+  if (startNode === endNode) {
+    pathfinderRoute.value = []
+    return true
+  }
 
   const queue: string[][] = [[startNode]]
   const visited: Set<string> = new Set([startNode])
@@ -38,5 +41,6 @@ export function findShortestPath(startNode: string, endNode: string) {
     }
   }
 
+  pathfinderRoute.value = []
   return false
 }
