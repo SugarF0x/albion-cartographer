@@ -4,9 +4,9 @@ import { computed } from 'vue'
 import { cloneDeep } from 'lodash'
 import { ZoneToLinksMap } from '/@/data/staticZones'
 import type { Datum } from '/@/pathing'
-import AudioPlayer from '/@/AudioPlayer'
-import { eventLog } from '/@/eventLog'
+import Events from '/@/Events'
 import { z } from 'zod'
+import type AudioPlayer from '/@/AudioPlayer'
 
 export const CustomLinkDataSchema = z.object({
   source: z.string(),
@@ -68,25 +68,18 @@ function scheduleRemoval() {
 removeExpired()
 scheduleRemoval()
 
-export function addLink(source: string, target: string, time: number, noSound?: boolean) {
-  function innerPlay(sound: Parameters<typeof AudioPlayer.play>[0]) {
-    if (noSound) return
-    void AudioPlayer.play(sound)
+export function addLink(source: string, target: string, time: number, silent?: boolean) {
+  function getSound(type: Parameters<typeof AudioPlayer.play>[0]) {
+    if (silent) return undefined
+    return type
   }
 
   const expiration = add(new Date(), { seconds: millisecondsToSeconds(time) }).toISOString()
-  if (isBefore(expiration, new Date())) {
-    eventLog.push(String(new Error(`Link is expired: ${source} > ${target}`)))
-    return innerPlay('error')
-  }
+  if (isBefore(expiration, new Date())) return void Events.push(new Error(`Link is expired: ${source} > ${target}`), getSound('error'))
 
   const links = zoneToStoreLinksMap.value[source]
-  if (!(!links || !(links.includes(target)))) {
-    eventLog.push(`Duplicate link found: ${source} > ${target}`)
-    return innerPlay('notification')
-  }
+  if (!(!links || !(links.includes(target)))) return void Events.push(`Duplicate link found: ${source} > ${target}`, getSound('notification'))
 
-  eventLog.push(`Added new link: ${source} > ${target}`)
-  innerPlay('open')
+  Events.push(`Added new link: ${source} > ${target}`, getSound('open'))
   storeLinks.value.push({ source, target, expiration })
 }

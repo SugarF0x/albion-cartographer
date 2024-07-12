@@ -9,7 +9,7 @@ import { activeLinksMap, addLink, CustomLinkDataSchema, storeLinks } from '/@/li
 import ZoneSelector from './ZoneSelector.vue'
 import { findShortestPath, pathfinderRoute } from '/@/pathing'
 import AudioPlayer from '/@/AudioPlayer'
-import { eventLog } from './eventLog'
+import Events from './Events'
 import { takeRight } from 'lodash'
 import { z } from 'zod'
 import { isBefore } from 'date-fns'
@@ -30,8 +30,7 @@ function findPath() {
   if (autoSearch.value && didFind) {
     console.log(previousPath, pathfinderRoute.value)
     if (previousPath.length !== 0 && previousPath.length <= pathfinderRoute.value.length) return
-    eventLog.push(`Found path: ${from.value} > ${to.value}`)
-    void AudioPlayer.play('alert')
+    Events.push(`Found path: ${from.value} > ${to.value}`, 'alert')
   }
 }
 
@@ -39,8 +38,7 @@ const importValue = ref('')
 
 function exportData() {
   importValue.value = btoa(JSON.stringify(storeLinks.value))
-  eventLog.push('Pushed current state for export')
-  void AudioPlayer.play('alert')
+  Events.push('Pushed current state for export', 'alert')
 }
 
 function importData() {
@@ -49,15 +47,16 @@ function importData() {
     const data = JSON.parse(decoded)
     const validatedData = z.array(CustomLinkDataSchema).parse(data)
     const filteredData = validatedData.filter(e => isBefore(new Date(), new Date(e.expiration)))
-    if (!filteredData.length) return eventLog.push('Failed to import: data is expired')
+    if (!filteredData.length) return Events.push('Failed to import: data is expired', 'notification')
+
     for (const item of filteredData) {
       const expiration = new Date(item.expiration).valueOf() - Date.now()
-      addLink(item.source, item.target, expiration, true)
+      addLink(item.source, item.target, expiration, false)
     }
-    eventLog.push('Successfully imported data')
-    void AudioPlayer.play('open')
+
+    Events.push('Successfully imported data', 'open')
   } catch(e) {
-    eventLog.push(String(e) + ' when importing value')
+    Events.push(String(e) + ' when importing value', 'error')
   }
 }
 
@@ -85,8 +84,7 @@ onMounted(() => {
 
       addLink(source, target, time)
     } catch (e) {
-      eventLog.push(String(e))
-      void AudioPlayer.play('error')
+      Events.push(String(e), 'error')
     }
   })
 
@@ -112,7 +110,7 @@ onMounted(() => {
       path
       <pre>{{ JSON.stringify(pathfinderRoute.map(e => e.target), null, 2) }}</pre>
       events (last 25)
-      <pre>{{ JSON.stringify(takeRight(eventLog, 25), null, 2) }}</pre>
+      <pre>{{ JSON.stringify(takeRight(Events.log, 25), null, 2) }}</pre>
 
       <div style="flex-grow: 1" />
 
