@@ -2,6 +2,8 @@ import { data } from './raw'
 import { Zone } from './zone'
 
 interface AO2DNode {
+  x: number
+  y: number
   exits: Array<{ _attr: AO2DExitAttrs }>
   _attr: AO2DNodeAttrs
 }
@@ -58,7 +60,7 @@ const validNodes = nodes.filter(e => {
   return false
 })
 
-export const [ZoneToIdMap, ZoneToNodeMap, ZoneToExitsMap, IdToZoneMap] = validNodes.reduce((acc, val) => {
+export const [ZoneToIdMap, ZoneToNodeMap, ZoneToExitsMap, IdToZoneMap, ZoneToNodePosMap] = validNodes.reduce((acc, val) => {
   const node = val._attr
   const zone = toSnakeCase(node.displayname) as Zone
 
@@ -66,9 +68,10 @@ export const [ZoneToIdMap, ZoneToNodeMap, ZoneToExitsMap, IdToZoneMap] = validNo
   acc[1][zone] = node
   acc[2][zone] = val.exits.map(e => e._attr)
   acc[3][node.id] = zone
+  acc[4][zone] = { x: val.x, y: -val.y }
 
   return acc
-}, [{} as Record<Zone, string>, {} as Record<Zone, AO2DNodeAttrs>, {} as Record<Zone, AO2DExitAttrs[]>, {} as Record<string, Zone>])
+}, [{} as Record<Zone, string>, {} as Record<Zone, AO2DNodeAttrs>, {} as Record<Zone, AO2DExitAttrs[]>, {} as Record<string, Zone>, {} as Record<Zone, { x: number; y: number }>])
 
 export const ZoneToLinksMap = Object.entries(ZoneToExitsMap).reduce((acc, [key, exits]) => {
   const zone = key as Zone

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Road, Zone } from '/@/data/zone'
-import { ZoneToNodeMap } from '/@/data/staticZones'
+import { ZoneToNodeMap, ZoneToNodePosMap } from '/@/data/staticZones'
 import Navigator from '/@/Navigator'
 import * as d3 from 'd3'
 import { cloneDeep, isEqual } from 'lodash'
@@ -9,7 +9,9 @@ import { ref, watch } from 'vue'
 
 // TODO: fix types
 
-const inputNodes = [...Object.values(Zone), ...Object.values(Road)].map(zone => ({ id: zone }))
+const zones = Object.values(Zone).map(zone => ({ id: zone, fx: ZoneToNodePosMap[zone].x, fy: ZoneToNodePosMap[zone].y }))
+const roads = Object.values(Road).map(zone => ({ id: zone }))
+const inputNodes = [...zones, ...roads]
 const inputLinks = cloneDeep(Navigator.links.value)
 
 const size = 1048
