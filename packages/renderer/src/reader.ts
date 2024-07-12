@@ -20,7 +20,9 @@ export async function read(input: { image: string, meta?: { isRed: boolean } }):
 
   if (!meta) return getName(text)
 
-  const timeElements = text.trim().split(' ').map(Number)
+  const timeElements = Object.assign([0, 0], text.trim().split(' ').map(Number))
+  if (timeElements.at(-1) === 0) timeElements.reverse()
+
   if (!meta.isRed) return hoursToMilliseconds(timeElements[0]) + minutesToMilliseconds(timeElements[1] ?? 0)
   return minutesToMilliseconds(timeElements[0]) + secondsToMilliseconds(timeElements[1] ?? 0)
 }
