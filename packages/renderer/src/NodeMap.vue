@@ -71,7 +71,7 @@ onMounted(() => {
 <template>
   <div class="container">
     <div id="chart">
-      <ZoneGraph />
+      <ZoneGraph @from="e => from = e" @to="e => to = e" />
     </div>
     <div class="controls-container">
       audio volume

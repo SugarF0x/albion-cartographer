@@ -7,6 +7,11 @@ import { cloneDeep, isEqual } from 'lodash'
 import { type Datum, pathfinderRoute } from '/@/pathing'
 import { ref, watch } from 'vue'
 
+defineEmits<{
+  (e: 'from', payload: string): void
+  (e: 'to', payload: string): void
+}>()
+
 // TODO: fix types
 
 const zones = Object.values(Zone).map(zone => ({ id: zone, fx: ZoneToNodePosMap[zone].x, fy: ZoneToNodePosMap[zone].y }))
@@ -120,6 +125,8 @@ watch(Navigator.links, value => {
         :opacity="getNodeOpacity(node.id)"
         :cx="node.x"
         :cy="node.y"
+        @click.left="$emit('from', node.id)"
+        @click.right="$emit('to', node.id)"
       >
         <title>{{ node.id }}</title>
       </circle>
