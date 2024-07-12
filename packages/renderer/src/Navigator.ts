@@ -1,14 +1,13 @@
 import { computed, watch } from 'vue'
 import { z } from 'zod'
 import { useLocalStorage } from '@vueuse/core'
-import type * as d3 from 'd3'
 import { ZoneToLinksMap } from '/@/data/staticZones'
 import { cloneDeep } from 'lodash'
 import { isBefore } from 'date-fns'
 import Events from '/@/Events'
 import type AudioPlayer from '/@/AudioPlayer'
 
-export type Datum = d3.SimulationLinkDatum<Record<string, unknown>>
+export type Datum = { source: string, target: string, index?: number }
 export type LinkData = z.infer<typeof LinkSchema>
 const LinkSchema = z.object({
   source: z.string(),

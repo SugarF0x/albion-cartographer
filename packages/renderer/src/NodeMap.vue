@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { chart } from './chart'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { screenCapture } from '#preload'
 import { parse } from '/@/parser'
@@ -11,6 +10,7 @@ import { findShortestPath, pathfinderRoute } from '/@/pathing'
 import AudioPlayer from '/@/AudioPlayer'
 import Events from './Events'
 import { takeRight } from 'lodash'
+import ZoneGraph from '/@/ZoneGraph.vue'
 
 const from = ref('LYMHURST')
 const to = ref('SEBOS_AVOIROM')
@@ -26,7 +26,6 @@ function findPath() {
   const previousPath = [...pathfinderRoute.value]
   const didFind = findShortestPath(from.value, to.value)
   if (autoSearch.value && didFind) {
-    console.log(previousPath, pathfinderRoute.value)
     if (previousPath.length !== 0 && previousPath.length <= pathfinderRoute.value.length) return
     Events.push(`Found path: ${from.value} > ${to.value}`, 'alert')
   }
@@ -44,12 +43,12 @@ function importData() {
 }
 
 onMounted(() => {
-  const element = chart()
-  if (!element) return
-
-  element.removeAttribute('width')
-  element.removeAttribute('height')
-  document.querySelector('#chart')?.appendChild(element)
+  // const element = chart()
+  // if (!element) return
+  //
+  // element.removeAttribute('width')
+  // element.removeAttribute('height')
+  // document.querySelector('#chart')?.appendChild(element)
 
   const unsubscribe = screenCapture(async (data, position) => {
     try {
@@ -78,7 +77,9 @@ onMounted(() => {
 
 <template>
   <div class="container">
-    <div id="chart" />
+    <div id="chart">
+      <ZoneGraph />
+    </div>
     <div class="controls-container">
       audio volume
       <input v-model.number="AudioPlayer.volume.value" type="range" :min="AudioPlayer.MIN_VOLUME" :max="AudioPlayer.MAX_VOLUME" :step="(AudioPlayer.MAX_VOLUME - AudioPlayer.MIN_VOLUME) / 100" />
