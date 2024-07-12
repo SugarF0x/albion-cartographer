@@ -81,7 +81,7 @@ onMounted(() => {
     <div id="chart" />
     <div class="controls-container">
       audio volume
-      <input v-model.number="AudioPlayer.volume" type="range" :min="AudioPlayer.MIN_VOLUME" :max="AudioPlayer.MAX_VOLUME" :step="(AudioPlayer.MAX_VOLUME - AudioPlayer.MIN_VOLUME) / 100" />
+      <input v-model.number="AudioPlayer.volume.value" type="range" :min="AudioPlayer.MIN_VOLUME" :max="AudioPlayer.MAX_VOLUME" :step="(AudioPlayer.MAX_VOLUME - AudioPlayer.MIN_VOLUME) / 100" />
       from
       <ZoneSelector v-model="from" />
       to
