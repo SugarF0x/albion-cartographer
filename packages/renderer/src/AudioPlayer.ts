@@ -28,7 +28,7 @@ class AudioPlayer {
       console.error(e)
       this.volume.value = this.DEFAULT_VOLUME
     }
-  })
+  }, { immediate: true })
 
   private playerPromise = Promise.resolve()
 
