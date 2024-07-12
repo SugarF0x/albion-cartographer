@@ -43,13 +43,6 @@ function importData() {
 }
 
 onMounted(() => {
-  // const element = chart()
-  // if (!element) return
-  //
-  // element.removeAttribute('width')
-  // element.removeAttribute('height')
-  // document.querySelector('#chart')?.appendChild(element)
-
   const unsubscribe = screenCapture(async (data, position) => {
     try {
       const images = await parse(data, position)
