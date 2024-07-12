@@ -17,19 +17,20 @@ class AudioPlayer {
 
   volume = useLocalStorage('audioVolume', this.DEFAULT_VOLUME)
 
-  private onVolumeChange = watchEffect(() => {
-    console.log('on changed fired')
-    try {
-      z.number().min(this.MIN_VOLUME).max(this.MAX_VOLUME).parse(this.volume.value)
-      for (const key in this.tracks) {
-        const audio = this.tracks[key as keyof typeof this.tracks]
-        audio.volume = this.volume.value
+  constructor() {
+    watchEffect(() => {
+      try {
+        z.number().min(this.MIN_VOLUME).max(this.MAX_VOLUME).parse(this.volume.value)
+        for (const key in this.tracks) {
+          const audio = this.tracks[key as keyof typeof this.tracks]
+          audio.volume = this.volume.value
+        }
+      } catch (e) {
+        console.error(e)
+        this.volume.value = this.DEFAULT_VOLUME
       }
-    } catch (e) {
-      console.error(e)
-      this.volume.value = this.DEFAULT_VOLUME
-    }
-  })
+    })
+  }
 
   private playerPromise = Promise.resolve()
 

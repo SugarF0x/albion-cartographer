@@ -1,6 +1,6 @@
 import type * as d3 from 'd3'
 import { ref } from 'vue'
-import { activeLinksMap } from '/@/linksStore'
+import Navigator from '/@/Navigator'
 
 export type Datum = d3.SimulationLinkDatum<Record<string, unknown>>
 
@@ -17,7 +17,7 @@ export function findShortestPath(startNode: string, endNode: string) {
     if (!path) continue
 
     const node = path[path.length - 1]
-    const neighbors = activeLinksMap.value[node] || []
+    const neighbors = Navigator.zoneToLinksMap.value[node] || []
 
     for (const neighbor of neighbors) {
       if (neighbor === endNode) {

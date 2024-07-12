@@ -4,7 +4,7 @@ import { ZoneToNodeMap } from '/@/data/staticZones'
 import * as d3 from 'd3'
 import { cloneDeep } from 'lodash'
 import { watch } from 'vue'
-import { activeLinks, activeLinksMap } from '/@/linksStore'
+import Navigator from '/@/Navigator'
 import { pathfinderRoute } from '/@/pathing'
 
 function linkToString(value: Datum) {
@@ -62,7 +62,7 @@ export function chart() {
   const width = 1048
   const height = 1048
 
-  const { nodes, links } = cloneDeep({ nodes: inputNodes, links: activeLinks.value })
+  const { nodes, links } = cloneDeep({ nodes: inputNodes, links: Navigator.links.value })
 
   const simulation = d3.forceSimulation(nodes as ProcessedNode[])
     .force('link', d3.forceLink(links)
@@ -109,12 +109,12 @@ export function chart() {
     node
       .attr('cx', d => (d as ProcessedNode).x ?? 0)
       .attr('cy', d => (d as ProcessedNode).y ?? 0)
-      .attr('opacity', d => d.id in activeLinksMap.value ? 1 : .25)
+      .attr('opacity', d => d.id in Navigator.zoneToLinksMap.value ? 1 : .25)
   }
 
   simulation.on('tick', ticked)
 
-  watch(activeLinks, value => {
+  watch(Navigator.links, value => {
     const newLinks = cloneDeep(value)
     link = link.data(newLinks)
 

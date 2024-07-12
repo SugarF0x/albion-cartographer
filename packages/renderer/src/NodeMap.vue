@@ -5,20 +5,18 @@ import { screenCapture } from '#preload'
 import { parse } from '/@/parser'
 import { preprocessImageForOCR } from '/@/processor'
 import { read } from '/@/reader'
-import { activeLinksMap, addLink, CustomLinkDataSchema, storeLinks } from '/@/linksStore'
+import Navigator from '/@/Navigator'
 import ZoneSelector from './ZoneSelector.vue'
 import { findShortestPath, pathfinderRoute } from '/@/pathing'
 import AudioPlayer from '/@/AudioPlayer'
 import Events from './Events'
 import { takeRight } from 'lodash'
-import { z } from 'zod'
-import { isBefore } from 'date-fns'
 
 const from = ref('LYMHURST')
 const to = ref('SEBOS_AVOIROM')
 const autoSearch = ref(false)
 
-watch(activeLinksMap, () => {
+watch(Navigator.links, () => {
   if (!autoSearch.value) return
   findPath()
 })
@@ -37,27 +35,12 @@ function findPath() {
 const importValue = ref('')
 
 function exportData() {
-  importValue.value = btoa(JSON.stringify(storeLinks.value))
+  importValue.value = Navigator.export()
   Events.push('Pushed current state for export', 'alert')
 }
 
 function importData() {
-  try {
-    const decoded = atob(importValue.value)
-    const data = JSON.parse(decoded)
-    const validatedData = z.array(CustomLinkDataSchema).parse(data)
-    const filteredData = validatedData.filter(e => isBefore(new Date(), new Date(e.expiration)))
-    if (!filteredData.length) return Events.push('Failed to import: data is expired', 'notification')
-
-    for (const item of filteredData) {
-      const expiration = new Date(item.expiration).valueOf() - Date.now()
-      addLink(item.source, item.target, expiration, false)
-    }
-
-    Events.push('Successfully imported data', 'open')
-  } catch(e) {
-    Events.push(String(e) + ' when importing value', 'error')
-  }
+  Navigator.import(importValue.value)
 }
 
 onMounted(() => {
@@ -82,7 +65,8 @@ onMounted(() => {
       const target = String(await read(portalName))
       const time = Number(await read(portalTime))
 
-      addLink(source, target, time)
+      const expiration = new Date(Date.now() + time).toISOString()
+      Navigator.push({ source, target, expiration })
     } catch (e) {
       Events.push(String(e), 'error')
     }
@@ -106,7 +90,7 @@ onMounted(() => {
       auto seach
       <input v-model="autoSearch" type="checkbox" />
       <button @click="pathfinderRoute.length = 0">clear</button>
-      <button @dblclick="storeLinks = []">clear storage</button>
+      <button @dblclick="Navigator.flush">clear storage</button>
       path
       <pre>{{ JSON.stringify(pathfinderRoute.map(e => e.target), null, 2) }}</pre>
       events (last 25)
