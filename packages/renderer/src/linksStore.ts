@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import { cloneDeep } from 'lodash'
 import { ZoneToLinksMap } from '/@/data/staticZones'
 import type { Datum } from '/@/pathing'
-import { play } from '/@/audioPlayer'
+import AudioPlayer from '/@/AudioPlayer'
 import { eventLog } from '/@/eventLog'
 import { z } from 'zod'
 
@@ -69,9 +69,9 @@ removeExpired()
 scheduleRemoval()
 
 export function addLink(source: string, target: string, time: number, noSound?: boolean) {
-  function innerPlay(sound: Parameters<typeof play>[0]) {
+  function innerPlay(sound: Parameters<typeof AudioPlayer.play>[0]) {
     if (noSound) return
-    play(sound)
+    void AudioPlayer.play(sound)
   }
 
   const expiration = add(new Date(), { seconds: millisecondsToSeconds(time) }).toISOString()

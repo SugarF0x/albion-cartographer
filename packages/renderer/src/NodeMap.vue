@@ -8,7 +8,7 @@ import { read } from '/@/reader'
 import { activeLinksMap, addLink, CustomLinkDataSchema, storeLinks } from '/@/linksStore'
 import ZoneSelector from './ZoneSelector.vue'
 import { findShortestPath, pathfinderRoute } from '/@/pathing'
-import { play, audioVolume } from '/@/audioPlayer'
+import AudioPlayer from '/@/AudioPlayer'
 import { eventLog } from './eventLog'
 import { takeRight } from 'lodash'
 import { z } from 'zod'
@@ -31,7 +31,7 @@ function findPath() {
     console.log(previousPath, pathfinderRoute.value)
     if (previousPath.length !== 0 && previousPath.length <= pathfinderRoute.value.length) return
     eventLog.push(`Found path: ${from.value} > ${to.value}`)
-    play('alert')
+    void AudioPlayer.play('alert')
   }
 }
 
@@ -40,7 +40,7 @@ const importValue = ref('')
 function exportData() {
   importValue.value = btoa(JSON.stringify(storeLinks.value))
   eventLog.push('Pushed current state for export')
-  play('alert')
+  void AudioPlayer.play('alert')
 }
 
 function importData() {
@@ -55,7 +55,7 @@ function importData() {
       addLink(item.source, item.target, expiration, true)
     }
     eventLog.push('Successfully imported data')
-    play('open')
+    void AudioPlayer.play('open')
   } catch(e) {
     eventLog.push(String(e) + ' when importing value')
   }
@@ -86,7 +86,7 @@ onMounted(() => {
       addLink(source, target, time)
     } catch (e) {
       eventLog.push(String(e))
-      play('error')
+      void AudioPlayer.play('error')
     }
   })
 
@@ -99,7 +99,7 @@ onMounted(() => {
     <div id="chart" />
     <div class="controls-container">
       audio volume
-      <input v-model="audioVolume" type="range" min="0" max="1" step="0.01" />
+      <input v-model.number="AudioPlayer.volume" type="range" :min="AudioPlayer.MIN_VOLUME" :max="AudioPlayer.MAX_VOLUME" :step="(AudioPlayer.MAX_VOLUME - AudioPlayer.MIN_VOLUME) / 100" />
       from
       <ZoneSelector v-model="from" />
       to
