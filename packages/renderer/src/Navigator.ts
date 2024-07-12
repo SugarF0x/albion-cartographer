@@ -114,7 +114,7 @@ function flush() {
 
 removeExpired()
 scheduleRemoval()
-watch(storeLinks, scheduleRemoval)
+watch(storeLinks, scheduleRemoval, { deep: true })
 
 export default {
   links,
