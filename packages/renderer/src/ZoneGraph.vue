@@ -58,6 +58,14 @@ function getStrokeWidth(link: Datum) {
   return 1
 }
 
+function getLineOpacity(link: Datum) {
+  const from = link.source.id
+  const to = link.target.id
+  if ((from in Zone && to in Zone) || (from in Road && to in Road)) return 1
+  if (pathfinderRoute.value.some(datum => isEqual(datum, { source: from, target: to }))) return 1
+  return .1
+}
+
 function getLinkStrength({ source, target }: Datum): number {
   const { id: sourceId } = source
   const { id: targetId } = target
@@ -114,6 +122,7 @@ const IMAGE_ZOOM = 550
         :key="`${link.source}-${link.target}`"
         :stroke="getLineStrokeColor(link)"
         :stroke-width="getStrokeWidth(link)"
+        :opacity="getLineOpacity(link)"
         :x1="link.source.x"
         :y1="link.source.y"
         :x2="link.target.x"
