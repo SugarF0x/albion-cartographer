@@ -8,8 +8,9 @@ export function getSampleData() {
   const parsed = JSON.parse(decoded)
   const validatedData = z.array(Navigator.LinkSchema).parse(parsed)
   const minTime = validatedData.reduce((acc, val) => Math.min(acc, new Date(val.expiration).valueOf()), Number.MAX_SAFE_INTEGER)
-  return validatedData.map(item => ({
+  const timeShiftedData = validatedData.map(item => ({
     ...item,
-    expiration: new Date(new Date(item.expiration).valueOf() - minTime + 1000 * 60).toISOString(),
+    expiration: new Date(new Date(item.expiration).valueOf() - minTime + 1000 * 60 + Date.now()).toISOString(),
   }))
+  return btoa(JSON.stringify(timeShiftedData))
 }
