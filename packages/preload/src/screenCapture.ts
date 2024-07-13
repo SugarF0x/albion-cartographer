@@ -22,8 +22,8 @@ function getRandomImage(): [string, [number, number]] {
 
 export function screenCapture(onCapture: (data: string, mousePos: [number, number]) => void) {
   function listener(e: IGlobalKeyEvent, down: IGlobalKeyDownMap) {
-    if (e.name !== 'MOUSE LEFT') return
     if (e.state !== 'DOWN') return
+    if (e.name !== 'MOUSE LEFT') return
     if (!down['LEFT CTRL'] || !down['LEFT SHIFT']) return
 
     for (const monitor of monitors) {
