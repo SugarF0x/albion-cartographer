@@ -19,7 +19,7 @@ const roads = Object.values(Road).map(zone => ({ id: zone }))
 const inputNodes = [...zones, ...roads]
 const inputLinks = cloneDeep(Navigator.links.value)
 
-const size = 1048
+const size = 1048 * 1.1
 const viewBox = `${-size/2} ${-size/2} ${size} ${size}`
 
 function getZoneColor(area: Zone | Road) {
@@ -69,27 +69,28 @@ function getLineOpacity(link: Datum) {
 function getLinkStrength({ source, target }: Datum): number {
   const { id: sourceId } = source
   const { id: targetId } = target
-  if (!targetId || !sourceId) return .5
 
   if ([
-    targetId === `${sourceId}_PORTAL`,
-    sourceId === `${targetId}_PORTAL`,
     targetId in Zone && sourceId in Road,
     sourceId in Zone && targetId in Road,
   ].some(Boolean)) return 0
 
-  if (targetId in Road && sourceId in Road) return .05
+  if (targetId in Road && sourceId in Road) return .5
 
-  return 2.1
+  return 1
+}
+
+function getNodeStrength({ id }: { id: string }) {
+  if (id in Road || id in Zone) return -40
+  return 0
 }
 
 const simulation = d3.forceSimulation(inputNodes)
   .force('link', d3.forceLink(inputLinks)
     .id(d => d.id)
-    .distance(10)
     .strength(getLinkStrength),
   )
-  .force('charge', d3.forceManyBody())
+  .force('charge', d3.forceManyBody().strength(getNodeStrength))
   .force('x', d3.forceX())
   .force('y', d3.forceY())
 
@@ -104,13 +105,12 @@ watch(Navigator.links, value => {
     .nodes(inputNodes)
     .force('link', d3.forceLink(inputLinks)
       .id(d => d.id)
-      .distance(10)
       .strength(getLinkStrength),
     )
     .alpha(.5).restart()
 })
 
-const IMAGE_ZOOM = 550
+const IMAGE_ZOOM = 440
 </script>
 
 <template>
