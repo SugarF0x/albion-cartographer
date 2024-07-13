@@ -101,10 +101,13 @@ watch(Navigator.links, value => {
     )
     .alpha(.5).restart()
 })
+
+const IMAGE_ZOOM = 550
 </script>
 
 <template>
   <svg id="map" :key="tick" :viewBox="viewBox">
+    <image href="/images/albion.png" :width="size / 2 + IMAGE_ZOOM" :height="size + IMAGE_ZOOM" :x="-size / 4 - IMAGE_ZOOM / 2" :y="-(size + IMAGE_ZOOM) / 2" />
     <g stroke-opacity="0.6">
       <line
         v-for="link of inputLinks"
@@ -135,4 +138,16 @@ watch(Navigator.links, value => {
 </template>
 
 <style scoped lang="scss">
+#map {
+  position: relative;
+}
+
+.background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 </style>
