@@ -18,7 +18,7 @@ const roads = Object.values(Road).map(zone => ({ id: zone }))
 const inputNodes = [...zones, ...roads]
 const inputLinks = cloneDeep(Navigator.links.value)
 
-const size = 1048 * 1.1
+const size = 1024 * 1.15
 const viewBox = `${-size/2} ${-size/2} ${size} ${size}`
 
 function getZoneColor(area: Zone | Road) {
@@ -109,12 +109,18 @@ watch(Navigator.links, value => {
     .alpha(.5).restart()
 })
 
-const IMAGE_ZOOM = 440
+const IMAGE_SIZE = [512, 1024].map(e => e * 1.55)
 </script>
 
 <template>
   <svg id="map" :key="tick" :viewBox="viewBox">
-    <image href="/images/albion.png" :width="size / 2 + IMAGE_ZOOM" :height="size + IMAGE_ZOOM" :x="-size / 4 - IMAGE_ZOOM / 2" :y="-(size + IMAGE_ZOOM) / 2" />
+    <image
+      href="/images/albion.png"
+      :width="IMAGE_SIZE[0]"
+      :height="IMAGE_SIZE[1]"
+      :x="-IMAGE_SIZE[0] / 2"
+      :y="-IMAGE_SIZE[1] / 2"
+    />
     <g stroke-opacity="0.6">
       <line
         v-for="link of inputLinks"

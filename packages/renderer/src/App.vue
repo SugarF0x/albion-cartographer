@@ -18,6 +18,7 @@ html, body {
   background-color: $c;
   height: 100vh;
   width: 100vw;
+  overflow: hidden;
 }
 
 html, body, #app {

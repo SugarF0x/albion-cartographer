@@ -96,7 +96,6 @@ const mappedPercentage = computed(() => {
 }
 
 .controls-container {
-  margin: 24px;
   max-width: min(50%, 600px);
   display: flex;
   flex-direction: column;
@@ -105,8 +104,7 @@ const mappedPercentage = computed(() => {
   background-color: #323B44;
   color: white;
   padding: 16px;
-  border-radius: 16px;
-  border: 1px solid #5d6876;
+  border-left: 4px solid #5d6876;
   box-sizing: border-box;
 
   :deep(#controls) {
