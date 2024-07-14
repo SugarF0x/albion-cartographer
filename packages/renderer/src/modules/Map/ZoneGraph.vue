@@ -18,6 +18,9 @@ const roads = Object.values(Road).map(zone => ({ id: zone }))
 const inputNodes = [...zones, ...roads]
 const inputLinks = cloneDeep(Navigator.links.value)
 
+const size = 1024 * 1.15
+const viewBox = `${-size / 2} ${-size / 2} ${size} ${size}`
+
 const zoom = ref(1)
 const offset = reactive({ x: 0, y: 0 })
 
@@ -34,12 +37,9 @@ function dragStop() { isDragging = false }
 function onPointerMove(event: PointerEvent) {
   if (!isDragging) return
   const { movementX, movementY } = event
-  offset.x += movementX
-  offset.y += movementY
+  offset.x += movementX / zoom.value
+  offset.y += movementY / zoom.value
 }
-
-const size = 1024 * 1.15
-const viewBox = `${-size / 2} ${-size / 2} ${size} ${size}`
 
 function getZoneColor(area: Zone | Road) {
   if (!(area in Zone)) return 'white'
