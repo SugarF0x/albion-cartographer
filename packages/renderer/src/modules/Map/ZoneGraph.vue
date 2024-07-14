@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import * as d3 from 'd3'
-import { cloneDeep, isEqual } from 'lodash'
-import { ref, watch } from 'vue'
+import { cloneDeep, isEqual, clamp } from 'lodash'
+import { computed, reactive, ref, watch } from 'vue'
 import { Road, Zone } from '/@/data/zone'
 import { ZoneToNodeMap, ZoneToNodePosMap } from '/@/data/staticZones'
 import Navigator, { type Datum } from '/@/services/Navigator'
+import { WheelEvent } from 'happy-dom'
 
 defineEmits<{
   (e: 'from', payload: string): void
@@ -18,8 +19,17 @@ const roads = Object.values(Road).map(zone => ({ id: zone }))
 const inputNodes = [...zones, ...roads]
 const inputLinks = cloneDeep(Navigator.links.value)
 
-const size = 1024 * 1.15
-const viewBox = `${-size/2} ${-size/2} ${size} ${size}`
+const zoom = ref(1)
+const offset = reactive({ x: 0, y: 0 })
+
+function onScroll(event: WheelEvent) {
+  const step = 0.01
+  const change = clamp(event.deltaY, -1, 1) * step
+  zoom.value = Math.max(0, zoom.value + change)
+}
+
+const size = computed(() => 1024 * 1.15 * zoom.value)
+const viewBox = computed(() => `${-size.value / 2 + offset.x} ${-size.value / 2 + offset.y} ${size.value + offset.x} ${size.value + offset.y}`)
 
 function getZoneColor(area: Zone | Road) {
   if (!(area in Zone)) return 'white'
@@ -113,7 +123,7 @@ const IMAGE_SIZE = [512, 1024].map(e => e * 1.55)
 </script>
 
 <template>
-  <svg id="map" :key="tick" :viewBox="viewBox">
+  <svg id="map" :key="tick" :viewBox="viewBox" @wheel="onScroll">
     <image
       href="/images/albion.png"
       :width="IMAGE_SIZE[0]"
