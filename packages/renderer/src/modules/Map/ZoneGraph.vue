@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import * as d3 from 'd3'
 import { cloneDeep, isEqual, clamp } from 'lodash'
-import { computed, reactive, ref, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import { Road, Zone } from '/@/data/zone'
 import { ZoneToNodeMap, ZoneToNodePosMap } from '/@/data/staticZones'
 import Navigator, { type Datum } from '/@/services/Navigator'
-import { WheelEvent } from 'happy-dom'
 
 defineEmits<{
   (e: 'from', payload: string): void
@@ -23,13 +22,24 @@ const zoom = ref(1)
 const offset = reactive({ x: 0, y: 0 })
 
 function onScroll(event: WheelEvent) {
-  const step = 0.01
+  const step = 0.05
   const change = clamp(event.deltaY, -1, 1) * step
-  zoom.value = Math.max(0, zoom.value + change)
+  zoom.value = Math.max(0.05, zoom.value - change)
 }
 
-const size = computed(() => 1024 * 1.15 * zoom.value)
-const viewBox = computed(() => `${-size.value / 2 + offset.x} ${-size.value / 2 + offset.y} ${size.value + offset.x} ${size.value + offset.y}`)
+let isDragging = false
+function dragStart() { isDragging = true }
+function dragStop() { isDragging = false }
+
+function onPointerMove(event: PointerEvent) {
+  if (!isDragging) return
+  const { movementX, movementY } = event
+  offset.x += movementX
+  offset.y += movementY
+}
+
+const size = 1024 * 1.15
+const viewBox = `${-size / 2} ${-size / 2} ${size} ${size}`
 
 function getZoneColor(area: Zone | Road) {
   if (!(area in Zone)) return 'white'
@@ -123,55 +133,57 @@ const IMAGE_SIZE = [512, 1024].map(e => e * 1.55)
 </script>
 
 <template>
-  <svg id="map" :key="tick" :viewBox="viewBox" @wheel="onScroll">
-    <image
-      href="/images/albion.png"
-      :width="IMAGE_SIZE[0]"
-      :height="IMAGE_SIZE[1]"
-      :x="-IMAGE_SIZE[0] / 2"
-      :y="-IMAGE_SIZE[1] / 2"
-    />
-    <g stroke-opacity="0.6">
-      <line
-        v-for="link of inputLinks"
-        :key="`${link.source}-${link.target}`"
-        :stroke="getLineStrokeColor(link)"
-        :stroke-width="getStrokeWidth(link)"
-        :opacity="getLineOpacity(link)"
-        :x1="link.source.x"
-        :y1="link.source.y"
-        :x2="link.target.x"
-        :y2="link.target.y"
+  <svg
+    id="map"
+    :key="tick"
+    :viewBox="viewBox"
+    @wheel="onScroll"
+    @pointermove="onPointerMove"
+    @pointerdown="dragStart"
+    @pointerup="dragStop"
+    @pointerleave="dragStop"
+  >
+    <g :style="{ transform: `scale(${zoom}) translate(${offset.x}px, ${offset.y}px)` }">
+      <image
+        href="/images/albion.png"
+        :width="IMAGE_SIZE[0]"
+        :height="IMAGE_SIZE[1]"
+        :x="-IMAGE_SIZE[0] / 2"
+        :y="-IMAGE_SIZE[1] / 2"
       />
-    </g>
-    <g stroke="#fff" stroke-width="1.5">
-      <circle
-        v-for="node of inputNodes"
-        :key="node.id" r="5"
-        :fill="getZoneColor(node.id)"
-        :opacity="getNodeOpacity(node.id)"
-        :cx="node.x"
-        :cy="node.y"
-        @click.left="$emit('from', node.id)"
-        @click.right="$emit('to', node.id)"
-      >
-        <title>{{ node.id }}</title>
-      </circle>
+      <g stroke-opacity="0.6">
+        <line
+          v-for="link of inputLinks"
+          :key="`${link.source}-${link.target}`"
+          :stroke="getLineStrokeColor(link)"
+          :stroke-width="getStrokeWidth(link)"
+          :opacity="getLineOpacity(link)"
+          :x1="link.source.x"
+          :y1="link.source.y"
+          :x2="link.target.x"
+          :y2="link.target.y"
+        />
+      </g>
+      <g stroke="#fff" stroke-width="1.5">
+        <circle
+          v-for="node of inputNodes"
+          :key="node.id" r="5"
+          :fill="getZoneColor(node.id)"
+          :opacity="getNodeOpacity(node.id)"
+          :cx="node.x"
+          :cy="node.y"
+          @click.left="$emit('from', node.id)"
+          @click.right="$emit('to', node.id)"
+        >
+          <title>{{ node.id }}</title>
+        </circle>
+      </g>
     </g>
   </svg>
 </template>
 
 <style scoped lang="scss">
 #map {
-  position: relative;
-}
-
-.background {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  overflow: hidden;
 }
 </style>
