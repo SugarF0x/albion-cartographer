@@ -11,6 +11,7 @@ import AudioPlayer from '/@/AudioPlayer'
 import Events from './Events'
 import { takeRight } from 'lodash'
 import ZoneGraph from '/@/ZoneGraph.vue'
+import {getSampleData} from '/@/data/sampleData';
 
 const from = ref('LYMHURST')
 const to = ref('SEBOS_AVOIROM')
@@ -95,6 +96,7 @@ onMounted(() => {
       <textarea v-model="importValue" rows="10" />
       <button :disabled="!importValue" @click="importData">import</button>
       <button @click="exportData">export</button>
+      <button @click="importValue = getSampleData()">paste sample</button>
     </div>
   </div>
 </template>
