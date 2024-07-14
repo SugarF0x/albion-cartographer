@@ -4,8 +4,8 @@ import { useLocalStorage } from '@vueuse/core'
 import { ZoneToLinksMap } from '/@/data/staticZones'
 import { cloneDeep } from 'lodash'
 import { isBefore } from 'date-fns'
-import Events from '/@/Events'
-import type AudioPlayer from '/@/AudioPlayer'
+import Events from '/@/services/Events'
+import type AudioPlayer from '/@/services/AudioPlayer'
 
 export type Datum = { source: string, target: string, index?: number }
 export type LinkData = z.infer<typeof LinkSchema>

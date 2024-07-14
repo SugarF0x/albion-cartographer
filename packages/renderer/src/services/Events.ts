@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import AudioPlayer from '/@/AudioPlayer'
+import AudioPlayer from '/@/services/AudioPlayer'
 
 class Events {
   log: string[] = []

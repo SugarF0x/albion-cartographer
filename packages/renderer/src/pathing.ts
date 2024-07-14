@@ -1,6 +1,6 @@
 import type * as d3 from 'd3'
 import { ref } from 'vue'
-import Navigator from '/@/Navigator'
+import Navigator from '/@/services/Navigator'
 
 export type Datum = d3.SimulationLinkDatum<Record<string, unknown>>
 

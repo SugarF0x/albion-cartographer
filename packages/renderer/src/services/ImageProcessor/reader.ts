@@ -1,7 +1,15 @@
 import { createWorker } from 'tesseract.js'
 import { hoursToMilliseconds, minutesToMilliseconds, secondsToMilliseconds } from 'date-fns'
-import { getName } from '/@/fuzeZoneName'
-import { getPublicAssetPath } from '/@/getPublicAssetPath'
+import getPublicAssetPath from '/@/utils/getPublicAssetPath'
+import { Road, Zone } from '/@/data/zone'
+import Fuse from 'fuse.js'
+import { toSnakeCase } from '/@/data/staticZones'
+
+const ALL_NAMES = (Object.values(Zone) as string[]).concat(Object.values(Road))
+const fuse = new Fuse(ALL_NAMES, { includeScore: true })
+export function getName(value: string) {
+  return fuse.search(toSnakeCase(value))[0].item as Zone | Road
+}
 
 export async function read(input: { image: string, meta?: { isRed: boolean } }): Promise<string | number> {
   const { image, meta } = input

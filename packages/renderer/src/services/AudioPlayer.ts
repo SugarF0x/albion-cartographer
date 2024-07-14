@@ -1,4 +1,4 @@
-import { getPublicAssetPath } from '/@/getPublicAssetPath'
+import getPublicAssetPath from '/@/utils/getPublicAssetPath'
 import { useLocalStorage } from '@vueuse/core'
 import { watchEffect } from 'vue'
 import { z } from 'zod'

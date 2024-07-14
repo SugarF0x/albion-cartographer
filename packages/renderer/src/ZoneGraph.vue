@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Road, Zone } from '/@/data/zone'
 import { ZoneToNodeMap, ZoneToNodePosMap } from '/@/data/staticZones'
-import Navigator from '/@/Navigator'
+import Navigator from '/@/services/Navigator'
 import * as d3 from 'd3'
 import { cloneDeep, isEqual } from 'lodash'
 import { type Datum, pathfinderRoute } from '/@/pathing'
