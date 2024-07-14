@@ -17,7 +17,7 @@ export async function read(input: { image: string, meta?: { isRed: boolean } }):
   const worker = await createWorker('eng', 1, {
     workerPath: getPublicAssetPath('/ocr/worker.js'),
     corePath: getPublicAssetPath('/ocr/core.js'),
-    langPath: getPublicAssetPath('/ocr/langs/'),
+    langPath: getPublicAssetPath('/ocr/langs'),
   })
 
   if (meta) await worker.setParameters({ tessedit_char_whitelist: ' 0123456789' })
