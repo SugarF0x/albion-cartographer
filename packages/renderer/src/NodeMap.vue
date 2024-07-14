@@ -2,7 +2,6 @@
 import { ref, watch } from 'vue'
 import Navigator from '/@/services/Navigator'
 import ZoneSelector from './ZoneSelector.vue'
-import { findShortestPath, pathfinderRoute } from '/@/pathing'
 import AudioPlayer from '/@/services/AudioPlayer'
 import Events from './services/Events'
 import { takeRight } from 'lodash'
@@ -23,10 +22,10 @@ watch(Navigator.links, () => {
 
 function findPath() {
   if (!from.value || !to.value) return
-  const previousPath = [...pathfinderRoute.value]
-  const didFind = findShortestPath(from.value, to.value)
+  const previousPath = [...Navigator.pathfinderRoute.value]
+  const didFind = Navigator.findShortestPath(from.value, to.value)
   if (autoSearch.value && didFind) {
-    if (previousPath.length !== 0 && previousPath.length <= pathfinderRoute.value.length) return
+    if (previousPath.length !== 0 && previousPath.length <= Navigator.pathfinderRoute.value.length) return
     Events.push(`Found path: ${from.value} > ${to.value}`, 'alert')
   }
 }
@@ -58,10 +57,10 @@ function importData() {
       <button :disabled="autoSearch" @click="findPath()">search</button>
       auto seach
       <input v-model="autoSearch" type="checkbox" />
-      <button @click="pathfinderRoute.length = 0">clear</button>
+      <button @click="Navigator.pathfinderRoute.value.length = 0">clear</button>
       <button @dblclick="Navigator.flush">clear storage</button>
       path
-      <pre>{{ JSON.stringify(pathfinderRoute.map(e => e.target), null, 2) }}</pre>
+      <pre>{{ JSON.stringify(Navigator.pathfinderRoute.value.map(e => e.target), null, 2) }}</pre>
       events (last 25)
       <pre>{{ JSON.stringify(takeRight(Events.log, 25), null, 2) }}</pre>
 

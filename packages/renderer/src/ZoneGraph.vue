@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { Road, Zone } from '/@/data/zone'
 import { ZoneToNodeMap, ZoneToNodePosMap } from '/@/data/staticZones'
-import Navigator from '/@/services/Navigator'
+import Navigator, { type Datum } from '/@/services/Navigator'
 import * as d3 from 'd3'
 import { cloneDeep, isEqual } from 'lodash'
-import { type Datum, pathfinderRoute } from '/@/pathing'
 import { ref, watch } from 'vue'
 
 defineEmits<{
@@ -48,13 +47,13 @@ function getNodeOpacity(id: string) {
 
 function getLineStrokeColor(link: Datum) {
   const normalizedLink = { source: link.source.id, target: link.target.id }
-  if (pathfinderRoute.value.some(datum => isEqual(datum, normalizedLink))) return 'red'
+  if (Navigator.pathfinderRoute.value.some(datum => isEqual(datum, normalizedLink))) return 'red'
   return '#999'
 }
 
 function getStrokeWidth(link: Datum) {
   const normalizedLink = { source: link.source.id, target: link.target.id }
-  if (pathfinderRoute.value.some(datum => isEqual(datum, normalizedLink))) return 5
+  if (Navigator.pathfinderRoute.value.some(datum => isEqual(datum, normalizedLink))) return 5
   return 1
 }
 
@@ -62,7 +61,7 @@ function getLineOpacity(link: Datum) {
   const from = link.source.id
   const to = link.target.id
   if ((from in Zone && to in Zone) || (from in Road && to in Road)) return 1
-  if (pathfinderRoute.value.some(datum => isEqual(datum, { source: from, target: to }))) return 1
+  if (Navigator.pathfinderRoute.value.some(datum => isEqual(datum, { source: from, target: to }))) return 1
   return .1
 }
 

@@ -1,4 +1,4 @@
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { z } from 'zod'
 import { useLocalStorage } from '@vueuse/core'
 import { ZoneToLinksMap } from '/@/data/staticZones'
@@ -23,6 +23,7 @@ function isLinkNotExpired(item: LinkData): boolean {
   return !isLinkExpired(item)
 }
 
+const pathfinderRoute = ref<Datum[]>([])
 const storeLinks = useLocalStorage<LinkData[]>('customLinks', [])
 
 let cleanupTimeout: NodeJS.Timeout | null = null
@@ -111,16 +112,57 @@ function flush() {
   storeLinks.value = []
 }
 
+export function findShortestPath(startNode: string, endNode: string) {
+  if (startNode === endNode) {
+    pathfinderRoute.value = []
+    return true
+  }
+
+  const queue: string[][] = [[startNode]]
+  const visited: Set<string> = new Set([startNode])
+
+  while (queue.length > 0) {
+    const path = queue.shift()
+    if (!path) continue
+
+    const node = path[path.length - 1]
+    const neighbors = zoneToLinksMap.value[node] || []
+
+    for (const neighbor of neighbors) {
+      if (neighbor === endNode) {
+        const fullPath = [...path, neighbor]
+        const result: Datum[] = []
+
+        for (let i = 0; i < fullPath.length - 1; i++)
+          result.push({ source: fullPath[i], target: fullPath[i + 1] })
+
+        pathfinderRoute.value = result
+        return true
+      }
+
+      if (!visited.has(neighbor)) {
+        visited.add(neighbor)
+        queue.push([...path, neighbor])
+      }
+    }
+  }
+
+  pathfinderRoute.value = []
+  return false
+}
+
 removeExpired()
 scheduleRemoval()
 watch(storeLinks, scheduleRemoval, { deep: true })
 
 export default {
   links,
+  pathfinderRoute,
   zoneToLinksMap,
   push,
   import: importRaw,
   export: exportRaw,
   flush,
+  findShortestPath,
   LinkSchema,
 }
