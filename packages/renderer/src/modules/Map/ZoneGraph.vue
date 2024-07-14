@@ -4,19 +4,22 @@ import { cloneDeep, isEqual, clamp } from 'lodash'
 import { reactive, ref, watch } from 'vue'
 import { Road, Zone } from '/@/data/zone'
 import { ZoneToNodeMap, ZoneToNodePosMap } from '/@/data/staticZones'
-import Navigator, { type Datum } from '/@/services/Navigator'
+import Navigator from '/@/services/Navigator'
 
 defineEmits<{
   (e: 'from', payload: string): void
   (e: 'to', payload: string): void
 }>()
 
-// TODO: fix types
+// TODO: consider using Konva instead of svgs
 
-const zones = Object.values(Zone).map(zone => ({ id: zone, fx: ZoneToNodePosMap[zone].x, fy: ZoneToNodePosMap[zone].y }))
-const roads = Object.values(Road).map(zone => ({ id: zone }))
+type NodeDatum =  d3.SimulationNodeDatum & { id: string }
+type LinkDatum = { index?: number, source: NodeDatum, target: NodeDatum }
+
+const zones: NodeDatum[] = Object.values(Zone).map(zone => ({ id: zone, fx: ZoneToNodePosMap[zone].x, fy: ZoneToNodePosMap[zone].y }))
+const roads: NodeDatum[] = Object.values(Road).map(zone => ({ id: zone }))
 const inputNodes = [...zones, ...roads]
-const inputLinks = cloneDeep(Navigator.links.value)
+const inputLinks = cloneDeep(Navigator.links.value) as unknown as LinkDatum[]
 
 const size = 1024 * 1.15
 const viewBox = `${-size / 2} ${-size / 2} ${size} ${size}`
@@ -41,7 +44,7 @@ function onPointerMove(event: PointerEvent) {
   offset.y += movementY / zoom.value
 }
 
-function getZoneColor(area: Zone | Road) {
+function getZoneColor(area: string) {
   if (!(area in Zone)) return 'white'
   const zone = area as Zone
 
@@ -65,19 +68,19 @@ function getNodeOpacity(id: string) {
   return .25
 }
 
-function getLineStrokeColor(link: Datum) {
+function getLineStrokeColor(link: LinkDatum) {
   const normalizedLink = { source: link.source.id, target: link.target.id }
   if (Navigator.pathfinderRoute.value.some(datum => isEqual(datum, normalizedLink))) return 'red'
   return '#999'
 }
 
-function getStrokeWidth(link: Datum) {
+function getStrokeWidth(link: LinkDatum) {
   const normalizedLink = { source: link.source.id, target: link.target.id }
   if (Navigator.pathfinderRoute.value.some(datum => isEqual(datum, normalizedLink))) return 5
   return 1
 }
 
-function getLineOpacity(link: Datum) {
+function getLineOpacity(link: LinkDatum) {
   const from = link.source.id
   const to = link.target.id
   if ((from in Zone && to in Zone) || (from in Road && to in Road)) return 1
@@ -85,31 +88,25 @@ function getLineOpacity(link: Datum) {
   return .1
 }
 
-function getLinkStrength({ source, target }: Datum): number {
-  const { id: sourceId } = source
-  const { id: targetId } = target
-
+function getLinkStrength(link: LinkDatum): number {
   if ([
-    targetId in Zone && sourceId in Road,
-    sourceId in Zone && targetId in Road,
+    link.target.id in Zone && link.source.id in Road,
+    link.source.id in Zone && link.target.id in Road,
   ].some(Boolean)) return 0
 
-  if (targetId in Road && sourceId in Road) return .5
+  if (link.target.id in Road && link.source.id in Road) return .5
 
   return 1
 }
 
-function getNodeStrength({ id }: { id: string }) {
-  if (id in Road || id in Zone) return -40
+function getNodeStrength(node: NodeDatum) {
+  if (node.id in Road || node.id in Zone) return -40
   return 0
 }
 
 const simulation = d3.forceSimulation(inputNodes)
-  .force('link', d3.forceLink(inputLinks)
-    .id(d => d.id)
-    .strength(getLinkStrength),
-  )
-  .force('charge', d3.forceManyBody().strength(getNodeStrength))
+  .force('link', d3.forceLink<NodeDatum, LinkDatum>(inputLinks).id(d => d.id).strength(getLinkStrength))
+  .force('charge', d3.forceManyBody<NodeDatum>().strength(getNodeStrength))
   .force('x', d3.forceX())
   .force('y', d3.forceY())
 
@@ -122,10 +119,7 @@ watch(Navigator.links, value => {
 
   simulation
     .nodes(inputNodes)
-    .force('link', d3.forceLink(inputLinks)
-      .id(d => d.id)
-      .strength(getLinkStrength),
-    )
+    .force('link', d3.forceLink<NodeDatum, LinkDatum>(inputLinks).id(d => d.id).strength(getLinkStrength))
     .alpha(.5).restart()
 })
 
