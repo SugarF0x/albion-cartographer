@@ -71,7 +71,7 @@ const mappedPercentage = computed(() => {
       <input v-model="autoSearch" type="checkbox" />
       <button @click="Navigator.pathfinderRoute.value.length = 0">clear</button>
       <button @dblclick="Navigator.flush">clear storage</button>
-      path
+      path (expires in: {{ Navigator.pathExpiration.value }})
       <pre>{{ JSON.stringify(Navigator.pathfinderRoute.value.map(e => e.target), null, 2) }}</pre>
       events (last 25)
       <pre>{{ JSON.stringify(takeRight(Events.log, 25), null, 2) }}</pre>

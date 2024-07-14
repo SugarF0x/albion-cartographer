@@ -3,11 +3,11 @@ import { z } from 'zod'
 import { useLocalStorage } from '@vueuse/core'
 import { ZoneToLinksMap } from '/@/data/staticZones'
 import { cloneDeep } from 'lodash'
-import { isBefore } from 'date-fns'
+import { formatDistanceToNow, isBefore } from 'date-fns'
 import Events from '/@/services/Events'
 import type AudioPlayer from '/@/services/AudioPlayer'
+import { Zone } from '/@/data/zone'
 
-export type Datum = { source: string, target: string, index?: number }
 export type LinkData = z.infer<typeof LinkSchema>
 const LinkSchema = z.object({
   source: z.string(),
@@ -23,8 +23,14 @@ function isLinkNotExpired(item: LinkData): boolean {
   return !isLinkExpired(item)
 }
 
-const pathfinderRoute = ref<Datum[]>([])
 const storeLinks = useLocalStorage<LinkData[]>('customLinks', [])
+
+const pathfinderRoute = ref<LinkData[]>([])
+const pathExpiration = computed(() => {
+  const minExpiration = pathfinderRoute.value.reduce((acc, val) => Math.min(acc, new Date(val.expiration).valueOf() || Infinity), Infinity)
+  if (minExpiration < Infinity) return formatDistanceToNow(new Date(minExpiration))
+  return 'never'
+})
 
 let cleanupTimeout: NodeJS.Timeout | null = null
 function scheduleRemoval() {
@@ -32,7 +38,7 @@ function scheduleRemoval() {
   if (!storeLinks.value.length) return
 
   const closestExpiration = Math.max(storeLinks.value.reduce((acc, val) => Math.min(acc, new Date(val.expiration).valueOf() - Date.now()), Infinity), 0)
-  cleanupTimeout = setTimeout(() => {
+  if (closestExpiration < Infinity) cleanupTimeout = setTimeout(() => {
     removeExpired()
     scheduleRemoval()
   }, closestExpiration)
@@ -42,8 +48,8 @@ function removeExpired() {
   storeLinks.value = storeLinks.value.filter(isLinkNotExpired)
 }
 
-const staticLinks = Object.entries(ZoneToLinksMap).reduce<Datum[]>((acc, [zone, links]) => {
-  for (const link of links) acc.push({ source: zone, target: link })
+const staticLinks = Object.entries(ZoneToLinksMap).reduce<LinkData[]>((acc, [zone, links]) => {
+  for (const link of links) acc.push({ source: zone, target: link, expiration: 'never' })
   return acc
 }, [])
 
@@ -52,8 +58,8 @@ const links = computed(() => {
   for (const item of storeLinks.value) {
     if (isLinkExpired(item)) continue
 
-    const { source, target } = item
-    results.push({ source, target }, { source: target, target: source })
+    const { source, target, expiration } = item
+    results.push({ source, target, expiration }, { source: target, target: source, expiration })
   }
   return results
 })
@@ -131,10 +137,19 @@ export function findShortestPath(startNode: string, endNode: string) {
     for (const neighbor of neighbors) {
       if (neighbor === endNode) {
         const fullPath = [...path, neighbor]
-        const result: Datum[] = []
+        const result: LinkData[] = []
 
-        for (let i = 0; i < fullPath.length - 1; i++)
-          result.push({ source: fullPath[i], target: fullPath[i + 1] })
+        for (let i = 0; i < fullPath.length - 1; i++) {
+          const source = fullPath[i]
+          const target = fullPath[i + 1]
+
+          const expiration = (() => {
+            if (source in Zone && target in Zone) return 'never'
+            const linkData = storeLinks.value.find(link => (link.target === target && link.source === source) || (link.target === source && link.source === target))
+            return linkData?.expiration ?? 'never'
+          })()
+          result.push({ source, target, expiration })
+        }
 
         pathfinderRoute.value = result
         return true
@@ -158,6 +173,7 @@ watch(storeLinks, scheduleRemoval, { deep: true })
 export default {
   links,
   pathfinderRoute,
+  pathExpiration,
   zoneToLinksMap,
   push,
   import: importRaw,
