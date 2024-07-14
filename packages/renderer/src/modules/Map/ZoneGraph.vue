@@ -68,23 +68,24 @@ function getNodeOpacity(id: string) {
   return .25
 }
 
-function getLineStrokeColor(link: LinkDatum) {
+function getIsLinkInPath(link: LinkDatum) {
   const normalizedLink = { source: link.source.id, target: link.target.id }
-  if (Navigator.pathfinderRoute.value.some(datum => isEqual(datum, normalizedLink))) return 'red'
+  return Navigator.pathfinderRoute.value.some(({ source, target }) => isEqual({ source, target }, normalizedLink))
+}
+
+function getLineStrokeColor(link: LinkDatum) {
+  if (getIsLinkInPath(link)) return 'red'
   return '#999'
 }
 
 function getStrokeWidth(link: LinkDatum) {
-  const normalizedLink = { source: link.source.id, target: link.target.id }
-  if (Navigator.pathfinderRoute.value.some(datum => isEqual(datum, normalizedLink))) return 5
+  if (getIsLinkInPath(link)) return 5
   return 1
 }
 
 function getLineOpacity(link: LinkDatum) {
-  const from = link.source.id
-  const to = link.target.id
-  if ((from in Zone && to in Zone) || (from in Road && to in Road)) return 1
-  if (Navigator.pathfinderRoute.value.some(datum => isEqual(datum, { source: from, target: to }))) return 1
+  if ((link.source.id in Zone && link.target.id in Zone) || (link.source.id in Road && link.target.id in Road)) return 1
+  if (getIsLinkInPath(link)) return 1
   return .1
 }
 
