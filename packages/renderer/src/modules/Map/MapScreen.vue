@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { takeRight } from 'lodash'
 import Navigator from '/@/services/Navigator'
 import ZoneSelector from '/@/modules/Map/ZoneSelector.vue'
@@ -8,6 +8,7 @@ import Events from '/@/services/Events'
 import ZoneGraph from '/@/modules/Map/ZoneGraph.vue'
 import getSampleData from '/@/data/sampleData'
 import useImageProcessor from '/@/services/ImageProcessor'
+import { Road } from '/@/data/zone'
 
 useImageProcessor()
 
@@ -40,6 +41,16 @@ function exportData() {
 function importData() {
   Navigator.import(importValue.value)
 }
+
+const mappedPercentage = computed(() => {
+  const mappedRoads = Navigator.links.value.reduce((acc, val) => {
+    if (val.source in Road) acc.add(val.source)
+    if (val.target in Road) acc.add(val.target)
+    return acc
+  }, new Set<string>())
+
+  return Math.floor((mappedRoads.size / Object.values(Road).length) * 1000) / 10 + '%'
+})
 </script>
 
 <template>
@@ -48,6 +59,7 @@ function importData() {
       <ZoneGraph @from="e => from = e" @to="e => to = e" />
     </div>
     <div class="controls-container">
+      <div>Mapped: {{ mappedPercentage }}</div>
       audio volume
       <input v-model.number="AudioPlayer.volume.value" type="range" :min="AudioPlayer.MIN_VOLUME" :max="AudioPlayer.MAX_VOLUME" :step="(AudioPlayer.MAX_VOLUME - AudioPlayer.MIN_VOLUME) / 100" />
       from
