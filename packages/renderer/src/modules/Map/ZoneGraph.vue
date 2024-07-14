@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Road, Zone } from '/@/data/zone'
-import { ZoneToNodeMap, ZoneToNodePosMap } from '/@/data/staticZones'
-import Navigator, { type Datum } from '/@/services/Navigator'
 import * as d3 from 'd3'
 import { cloneDeep, isEqual } from 'lodash'
 import { ref, watch } from 'vue'
+import { Road, Zone } from '/@/data/zone'
+import { ZoneToNodeMap, ZoneToNodePosMap } from '/@/data/staticZones'
+import Navigator, { type Datum } from '/@/services/Navigator'
 
 defineEmits<{
   (e: 'from', payload: string): void

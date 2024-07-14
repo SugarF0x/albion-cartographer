@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
-import Navigator from '/@/services/Navigator'
-import ZoneSelector from './ZoneSelector.vue'
-import AudioPlayer from '/@/services/AudioPlayer'
-import Events from './services/Events'
 import { takeRight } from 'lodash'
-import ZoneGraph from '/@/ZoneGraph.vue'
+import Navigator from '/@/services/Navigator'
+import ZoneSelector from '/@/modules/Map/ZoneSelector.vue'
+import AudioPlayer from '/@/services/AudioPlayer'
+import Events from '/@/services/Events'
+import ZoneGraph from '/@/modules/Map/ZoneGraph.vue'
 import getSampleData from '/@/data/sampleData'
 import useImageProcessor from '/@/services/ImageProcessor'
 

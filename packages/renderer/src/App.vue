@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import NodeMap from './NodeMap.vue'
+import MapScreen from '/src/modules/Map/MapScreen.vue'
 </script>
 
 <template>
-  <NodeMap />
+  <MapScreen />
 </template>
 
 <style lang="scss">
