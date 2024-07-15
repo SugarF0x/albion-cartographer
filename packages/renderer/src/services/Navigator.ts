@@ -1,4 +1,4 @@
-import { computed, ref, watch } from 'vue'
+import { computed, reactive, ref, watch, watchEffect } from 'vue'
 import { z } from 'zod'
 import { useLocalStorage } from '@vueuse/core'
 import { ZoneToLinksMap } from '/@/data/staticZones'
@@ -24,13 +24,6 @@ function isLinkNotExpired(item: LinkData): boolean {
 }
 
 const storeLinks = useLocalStorage<LinkData[]>('customLinks', [])
-
-const pathfinderRoute = ref<LinkData[]>([])
-const pathExpiration = computed(() => {
-  const minExpiration = pathfinderRoute.value.reduce((acc, val) => Math.min(acc, new Date(val.expiration).valueOf() || Infinity), Infinity)
-  if (minExpiration < Infinity) return formatDistanceToNow(new Date(minExpiration))
-  return 'never'
-})
 
 let cleanupTimeout: NodeJS.Timeout | null = null
 function scheduleRemoval() {
@@ -118,7 +111,20 @@ function flush() {
   storeLinks.value = []
 }
 
+const pathfinder = reactive({ from: '', to: '' })
+const pathfinderRoute = ref<LinkData[]>([])
+
+watchEffect(() => { findShortestPath(pathfinder.from, pathfinder.to) })
+
+const pathExpiration = computed(() => {
+  const minExpiration = pathfinderRoute.value.reduce((acc, val) => Math.min(acc, new Date(val.expiration).valueOf() || Infinity), Infinity)
+  if (minExpiration < Infinity) return formatDistanceToNow(new Date(minExpiration))
+  return 'never'
+})
+
 export function findShortestPath(startNode: string, endNode: string) {
+  if (!startNode || !endNode) return false
+
   if (startNode === endNode) {
     pathfinderRoute.value = []
     return true
@@ -172,6 +178,7 @@ watch(storeLinks, scheduleRemoval, { deep: true })
 
 export default {
   links,
+  pathfinder,
   pathfinderRoute,
   pathExpiration,
   zoneToLinksMap,

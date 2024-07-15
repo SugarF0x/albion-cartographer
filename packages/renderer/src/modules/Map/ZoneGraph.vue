@@ -7,8 +7,7 @@ import { ZoneToNodeMap, ZoneToNodePosMap } from '/@/data/staticZones'
 import Navigator from '/@/services/Navigator'
 
 defineEmits<{
-  (e: 'from', payload: string): void
-  (e: 'to', payload: string): void
+  (e: 'click', node: string, event: PointerEvent): void
 }>()
 
 type NodeDatum =  d3.SimulationNodeDatum & { id: string }
@@ -164,8 +163,7 @@ watch(Navigator.links, value => {
           :opacity="getNodeOpacity(node.id)"
           :cx="node.x"
           :cy="node.y"
-          @click.left="$emit('from', node.id)"
-          @click.right="$emit('to', node.id)"
+          @click.right="event => $emit('click', node.id, event)"
         >
           <title>{{ node.id }}</title>
         </circle>

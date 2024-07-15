@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { takeRight } from 'lodash'
 import Navigator from '/@/services/Navigator'
 import ZoneSelector from '/@/modules/Map/ZoneSelector.vue'
@@ -8,28 +8,17 @@ import Events from '/@/services/Events'
 import ZoneGraph from '/@/modules/Map/ZoneGraph.vue'
 import getSampleData from '/@/data/sampleData'
 import useImageProcessor from '/@/services/ImageProcessor'
-import { Road } from '/@/data/zone'
+import { Road, Zone } from '/@/data/zone'
+import NodeMenu from '/@/modules/Map/NodeMenu.vue'
 
 useImageProcessor()
 
-const from = ref('LYMHURST')
-const to = ref('SEBOS_AVOIROM')
 const autoSearch = ref(false)
 
 watch(Navigator.links, () => {
   if (!autoSearch.value) return
-  findPath()
+  Navigator.findShortestPath(Navigator.pathfinder.from, Navigator.pathfinder.to)
 })
-
-function findPath() {
-  if (!from.value || !to.value) return
-  const previousPath = [...Navigator.pathfinderRoute.value]
-  const didFind = Navigator.findShortestPath(from.value, to.value)
-  if (autoSearch.value && didFind) {
-    if (previousPath.length !== 0 && previousPath.length <= Navigator.pathfinderRoute.value.length) return
-    Events.push(`Found path: ${from.value} > ${to.value}`, 'alert')
-  }
-}
 
 const importValue = ref('')
 
@@ -51,25 +40,40 @@ const mappedPercentage = computed(() => {
 
   return Math.floor((mappedRoads.size / Object.values(Road).length) * 1000) / 10 + '%'
 })
+
+const menuState = reactive({ x: 0, y: 0, open: false, node: Zone.LYMHURST as string })
+window.addEventListener('click', () => { menuState.open = false })
+function onNodeClick(node: string, event: PointerEvent) {
+  event.stopPropagation()
+  menuState.x = event.clientX
+  menuState.y = event.clientY
+  menuState.open = true
+  menuState.node = node
+}
+
+function clearPath() {
+  Navigator.pathfinderRoute.value.length = 0
+  Navigator.pathfinder.from = ''
+  Navigator.pathfinder.to = ''
+}
 </script>
 
 <template>
   <div class="container">
     <div id="chart">
-      <ZoneGraph @from="e => from = e" @to="e => to = e" />
+      <zone-graph @click="onNodeClick" />
     </div>
     <div class="controls-container">
       <div>Mapped: {{ mappedPercentage }}</div>
       audio volume
       <input v-model.number="AudioPlayer.volume.value" type="range" :min="AudioPlayer.MIN_VOLUME" :max="AudioPlayer.MAX_VOLUME" :step="(AudioPlayer.MAX_VOLUME - AudioPlayer.MIN_VOLUME) / 100" />
       from
-      <ZoneSelector v-model="from" />
+      <zone-selector position="from" />
       to
-      <ZoneSelector v-model="to" />
-      <button :disabled="autoSearch" @click="findPath()">search</button>
+      <zone-selector position="to" />
       auto seach
       <input v-model="autoSearch" type="checkbox" />
-      <button @click="Navigator.pathfinderRoute.value.length = 0">clear</button>
+      <button @click="clearPath">clear</button>
       <button @dblclick="Navigator.flush">clear storage</button>
       path (expires in: {{ Navigator.pathExpiration.value }})
       <pre>{{ JSON.stringify(Navigator.pathfinderRoute.value.map(e => e.target), null, 2) }}</pre>
@@ -82,6 +86,8 @@ const mappedPercentage = computed(() => {
       <button :disabled="!importValue" @click="importData">import</button>
       <button @click="exportData">export</button>
       <button @click="importValue = getSampleData()">paste sample</button>
+
+      <node-menu v-bind="menuState" />
     </div>
   </div>
 </template>
