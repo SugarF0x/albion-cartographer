@@ -42,69 +42,87 @@ function onPointerMove(event: PointerEvent) {
   offset.y += movementY / zoom.value
 }
 
-function getZoneColor(area: string) {
-  if (!(area in Zone)) return 'white'
-  const zone = area as Zone
+function getNodeAttributes(node: NodeDatum) {
+  const { id, x, y } = node
 
-  const colorMap = {
-    STARTINGCITY: 'pink',
-    CITY: 'green',
-    SAFEAREA: 'blue',
-    YELLOW: 'gold',
-    RED: 'red',
-    BLACK: 'black',
+  const fill = (() => {
+    if (!(id in Zone)) return 'white'
+    const zone = id as Zone
+
+    const colorMap = {
+      STARTINGCITY: 'pink',
+      CITY: 'green',
+      SAFEAREA: 'blue',
+      YELLOW: 'gold',
+      RED: 'red',
+      BLACK: 'black',
+    }
+
+    for (const [type, color] of Object.entries(colorMap))
+      if (ZoneToNodeMap[zone].type.includes(type)) return color
+
+    return 'magenta'
+  })()
+
+  const opacity = (() => {
+    if (id in Navigator.zoneToLinksMap.value || Navigator.lastInspectedNode.value === id) return 1
+    return .25
+  })()
+
+  const rest = (() => {
+    if (Navigator.lastInspectedNode.value === id) return {
+      'stroke': '#ff00f6',
+      'stroke-dasharray': 4,
+      'stroke-width': 10,
+      'class': 'last-inspected-node',
+    }
+
+    return {
+      'stroke': '#fff',
+      'stroke-width': 1.5,
+    }
+  })()
+
+  const position = {
+    cx: x,
+    cy: y,
   }
 
-  for (const [type, color] of Object.entries(colorMap))
-    if (ZoneToNodeMap[zone].type.includes(type)) return color
-
-  return 'magenta'
+  return { fill, opacity, ...position, ...rest }
 }
 
-function getNodeOpacity(id: string) {
-  if (id in Navigator.zoneToLinksMap.value || Navigator.lastInspectedNode.value === id) return 1
-  return .25
-}
+function getLineAttributes(link: LinkDatum) {
+  function getIsLinkInPath(link: LinkDatum) {
+    const normalizedLink = { source: link.source.id, target: link.target.id }
+    return Navigator.pathfinderRoute.value.some(({ source, target }) => isEqual({ source, target }, normalizedLink))
+  }
 
-function getNodeStrokeColor(id: string) {
-  if (Navigator.lastInspectedNode.value === id) return '#ff00f6'
-  return '#fff'
-}
+  const opacity = (() => {
+    if ((link.source.id in Zone && link.target.id in Zone) || (link.source.id in Road && link.target.id in Road)) return 1
+    if (getIsLinkInPath(link)) return 1
+    return .1
+  })()
 
-function getNodeStrokeDashArray(id: string) {
-  if (Navigator.lastInspectedNode.value === id) return 4
-  return 0
-}
+  const rest = (() => {
+    if (getIsLinkInPath(link)) return {
+      'stroke': '#f00',
+      'stroke-width': 5,
+    }
 
-function getNodeStrokeWidth(id: string) {
-  if (Navigator.lastInspectedNode.value === id) return 10
-  return 1.5
-}
+    return {
+      'stroke': '#999',
+      'stroke-width': 1,
+    }
+  })()
 
-function getNodeClass(id: string) {
-  if (Navigator.lastInspectedNode.value === id) return 'last-inspected-node'
-  return ''
-}
+  const position = {
+    x1: link.source.x,
+    y1: link.source.y,
+    x2: link.target.x,
+    y2: link.target.y,
+  }
 
-function getIsLinkInPath(link: LinkDatum) {
-  const normalizedLink = { source: link.source.id, target: link.target.id }
-  return Navigator.pathfinderRoute.value.some(({ source, target }) => isEqual({ source, target }, normalizedLink))
-}
-
-function getLineStrokeColor(link: LinkDatum) {
-  if (getIsLinkInPath(link)) return 'red'
-  return '#999'
-}
-
-function getStrokeWidth(link: LinkDatum) {
-  if (getIsLinkInPath(link)) return 5
-  return 1
-}
-
-function getLineOpacity(link: LinkDatum) {
-  if ((link.source.id in Zone && link.target.id in Zone) || (link.source.id in Road && link.target.id in Road)) return 1
-  if (getIsLinkInPath(link)) return 1
-  return .1
+  return { opacity, ...rest, ...position }
 }
 
 function getLinkStrength(link: LinkDatum): number {
@@ -156,40 +174,12 @@ watch(Navigator.links, value => {
     @pointerleave="dragStop"
   >
     <g :style="{ transform: `scale(${zoom}) translate(${offset.x}px, ${offset.y}px)` }">
-      <image
-        href="/images/albion.png"
-        :width="IMAGE_SIZE[0]"
-        :height="IMAGE_SIZE[1]"
-        :x="-IMAGE_SIZE[0] / 2"
-        :y="-IMAGE_SIZE[1] / 2"
-      />
+      <image href="/images/albion.png" :width="IMAGE_SIZE[0]" :height="IMAGE_SIZE[1]" :x="-IMAGE_SIZE[0] / 2" :y="-IMAGE_SIZE[1] / 2" />
       <g>
-        <line
-          v-for="link of inputLinks"
-          :key="`${link.source}-${link.target}`"
-          :stroke="getLineStrokeColor(link)"
-          :stroke-width="getStrokeWidth(link)"
-          :opacity="getLineOpacity(link)"
-          :x1="link.source.x"
-          :y1="link.source.y"
-          :x2="link.target.x"
-          :y2="link.target.y"
-        />
+        <line v-for="link of inputLinks" v-bind="getLineAttributes(link)" :key="`${link.source}-${link.target}`" />
       </g>
       <g>
-        <circle
-          v-for="node of inputNodes"
-          :key="node.id" r="5"
-          :fill="getZoneColor(node.id)"
-          :stroke="getNodeStrokeColor(node.id)"
-          :stroke-dasharray="getNodeStrokeDashArray(node.id)"
-          :stroke-width="getNodeStrokeWidth(node.id)"
-          :class="getNodeClass(node.id)"
-          :opacity="getNodeOpacity(node.id)"
-          :cx="node.x"
-          :cy="node.y"
-          @click.right="(event) => $emit('click', node.id, event)"
-        >
+        <circle v-for="node of inputNodes" v-bind="getNodeAttributes(node)" :key="node.id" r="5" @click.right="(event) => $emit('click', node.id, event)">
           <title>{{ node.id }}</title>
         </circle>
       </g>
