@@ -17,7 +17,12 @@ const autoSearch = ref(false)
 
 watch(Navigator.links, () => {
   if (!autoSearch.value) return
-  Navigator.findShortestPath(Navigator.pathfinder.from, Navigator.pathfinder.to)
+  const previousPath = [...Navigator.pathfinderRoute.value]
+  const didFind = Navigator.findShortestPath(Navigator.pathfinder.from, Navigator.pathfinder.to)
+  if (autoSearch.value && didFind) {
+    if (previousPath.length !== 0 && previousPath.length <= Navigator.pathfinderRoute.value.length) return
+    Events.push(`Found path: ${Navigator.pathfinder.from} > ${Navigator.pathfinder.to}`, 'alert')
+  }
 })
 
 const importValue = ref('')
