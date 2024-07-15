@@ -7,7 +7,7 @@ import { ZoneToNodeMap, ZoneToNodePosMap } from '/@/data/staticZones'
 import Navigator from '/@/services/Navigator'
 
 defineEmits<{
-  (e: 'click', node: string, event: PointerEvent): void
+  (e: 'click', node: string, event: MouseEvent): void
 }>()
 
 type NodeDatum =  d3.SimulationNodeDatum & { id: string }
@@ -62,8 +62,28 @@ function getZoneColor(area: string) {
 }
 
 function getNodeOpacity(id: string) {
-  if (id in Navigator.zoneToLinksMap.value) return 1
+  if (id in Navigator.zoneToLinksMap.value || Navigator.lastInspectedNode.value === id) return 1
   return .25
+}
+
+function getNodeStrokeColor(id: string) {
+  if (Navigator.lastInspectedNode.value === id) return '#ff00f6'
+  return '#fff'
+}
+
+function getNodeStrokeDashArray(id: string) {
+  if (Navigator.lastInspectedNode.value === id) return 4
+  return 0
+}
+
+function getNodeStrokeWidth(id: string) {
+  if (Navigator.lastInspectedNode.value === id) return 10
+  return 1.5
+}
+
+function getNodeClass(id: string) {
+  if (Navigator.lastInspectedNode.value === id) return 'last-inspected-node'
+  return ''
 }
 
 function getIsLinkInPath(link: LinkDatum) {
@@ -108,9 +128,10 @@ const simulation = d3.forceSimulation(inputNodes)
   .force('charge', d3.forceManyBody<NodeDatum>().strength(getNodeStrength))
   .force('x', d3.forceX())
   .force('y', d3.forceY())
+  .alphaMin(.05)
 
 const tick = ref(0)
-simulation.on('tick', () => { tick.value++ })
+simulation.on('tick', () => { tick.value++; console.log('ticked!') })
 
 watch(Navigator.links, value => {
   inputLinks.length = 0
@@ -142,7 +163,7 @@ watch(Navigator.links, value => {
         :x="-IMAGE_SIZE[0] / 2"
         :y="-IMAGE_SIZE[1] / 2"
       />
-      <g stroke-opacity="0.6">
+      <g>
         <line
           v-for="link of inputLinks"
           :key="`${link.source}-${link.target}`"
@@ -155,15 +176,19 @@ watch(Navigator.links, value => {
           :y2="link.target.y"
         />
       </g>
-      <g stroke="#fff" stroke-width="1.5">
+      <g>
         <circle
           v-for="node of inputNodes"
           :key="node.id" r="5"
           :fill="getZoneColor(node.id)"
+          :stroke="getNodeStrokeColor(node.id)"
+          :stroke-dasharray="getNodeStrokeDashArray(node.id)"
+          :stroke-width="getNodeStrokeWidth(node.id)"
+          :class="getNodeClass(node.id)"
           :opacity="getNodeOpacity(node.id)"
           :cx="node.x"
           :cy="node.y"
-          @click.right="event => $emit('click', node.id, event)"
+          @click.right="(event) => $emit('click', node.id, event)"
         >
           <title>{{ node.id }}</title>
         </circle>
@@ -175,5 +200,16 @@ watch(Navigator.links, value => {
 <style scoped lang="scss">
 #map {
   overflow: hidden;
+}
+
+.last-inspected-node {
+  stroke-dashoffset: 0;
+  animation: dash .25s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: 8;
+  }
 }
 </style>

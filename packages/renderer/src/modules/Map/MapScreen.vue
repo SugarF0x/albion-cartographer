@@ -49,7 +49,7 @@ const mappedPercentage = computed(() => {
 
 const menuState = reactive({ x: 0, y: 0, open: false, node: Zone.LYMHURST as string })
 window.addEventListener('click', () => { menuState.open = false })
-function onNodeClick(node: string, event: PointerEvent) {
+function onNodeClick(node: string, event: MouseEvent) {
   event.stopPropagation()
   menuState.x = event.clientX
   menuState.y = event.clientY

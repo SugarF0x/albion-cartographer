@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import Navigator from '/@/services/Navigator'
+import { watch } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   x: number
   y: number
   open: boolean
   node: string
 }>()
+
+watch(() => props.open, () => { Navigator.lastInspectedNode.value = props.node })
 </script>
 
 <template>

@@ -71,8 +71,11 @@ function getPushSound(type: Parameters<typeof AudioPlayer.play>[0]) {
   return type
 }
 
+const lastInspectedNode = ref<null | string>(null)
+
 function push(data: LinkData) {
   const { target, source } = data
+  lastInspectedNode.value = target
   if (isLinkExpired(data)) return void Events.push(new Error(`Link is expired: ${source} > ${target}`), getPushSound('error'))
 
   const links = zoneToLinksMap.value[source]
@@ -188,4 +191,5 @@ export default {
   flush,
   findShortestPath,
   LinkSchema,
+  lastInspectedNode,
 }
