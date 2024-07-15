@@ -11,8 +11,6 @@ defineEmits<{
   (e: 'to', payload: string): void
 }>()
 
-// TODO: consider using Konva instead of svgs
-
 type NodeDatum =  d3.SimulationNodeDatum & { id: string }
 type LinkDatum = { index?: number, source: NodeDatum, target: NodeDatum }
 
@@ -21,6 +19,7 @@ const roads: NodeDatum[] = Object.values(Road).map(zone => ({ id: zone }))
 const inputNodes = [...zones, ...roads]
 const inputLinks = cloneDeep(Navigator.links.value) as unknown as LinkDatum[]
 
+const IMAGE_SIZE = [512, 1024].map(e => e * 1.55)
 const size = 1024 * 1.15
 const viewBox = `${-size / 2} ${-size / 2} ${size} ${size}`
 
@@ -28,7 +27,7 @@ const zoom = ref(1)
 const offset = reactive({ x: 0, y: 0 })
 
 function onScroll(event: WheelEvent) {
-  const step = 0.05
+  const step = zoom.value * .1
   const change = clamp(event.deltaY, -1, 1) * step
   zoom.value = Math.max(0.05, zoom.value - change)
 }
@@ -123,8 +122,6 @@ watch(Navigator.links, value => {
     .force('link', d3.forceLink<NodeDatum, LinkDatum>(inputLinks).id(d => d.id).strength(getLinkStrength))
     .alpha(.5).restart()
 })
-
-const IMAGE_SIZE = [512, 1024].map(e => e * 1.55)
 </script>
 
 <template>
