@@ -10,6 +10,7 @@ import getSampleData from '/@/data/sampleData'
 import useImageProcessor from '/@/services/ImageProcessor'
 import { Road, Zone } from '/@/data/zone'
 import NodeMenu from '/@/modules/Map/NodeMenu.vue'
+import PathfinderRoute from '/@/modules/Map/PathfinderRoute.vue'
 
 useImageProcessor()
 
@@ -80,8 +81,7 @@ function clearPath() {
       <input v-model="autoSearch" type="checkbox" />
       <button @click="clearPath">clear</button>
       <button @dblclick="Navigator.flush">clear storage</button>
-      path (expires in: {{ Navigator.pathExpiration.value }})
-      <pre>{{ JSON.stringify(Navigator.pathfinderRoute.value.map(e => e.target), null, 2) }}</pre>
+      <pathfinder-route />
       events (last 25)
       <pre>{{ JSON.stringify(takeRight(Events.log, 25), null, 2) }}</pre>
 
@@ -111,6 +111,7 @@ function clearPath() {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  gap: 4px;
 
   background-color: #323B44;
   color: white;
