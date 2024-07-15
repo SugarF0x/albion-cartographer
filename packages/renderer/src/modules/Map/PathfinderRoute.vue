@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import Navigator from '/@/services/Navigator'
-import { watch } from 'vue'
 import { formatDistanceToNow } from 'date-fns'
-
-watch(Navigator.pathfinderRoute, console.log)
 </script>
 
 <template>
@@ -20,7 +17,9 @@ watch(Navigator.pathfinderRoute, console.log)
       <tr v-for="link of Navigator.pathfinderRoute.value" :key="link.source">
         <td>{{ link.source }}</td>
         <td>{{ link.target }}</td>
-        <td v-if="link.expiration !== 'never'">{{ formatDistanceToNow(new Date(link.expiration)) }}</td>
+        <td>
+          <template v-if="link.expiration !== 'never'">{{ formatDistanceToNow(new Date(link.expiration)) }}</template>
+        </td>
       </tr>
     </tbody>
   </table>
