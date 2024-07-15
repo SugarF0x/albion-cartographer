@@ -6,7 +6,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 const v = new GlobalKeyboardListener()
 const monitors = Monitor.all()
 
-const IS_MOCK = false
+const IS_MOCK = process.env.NODE_ENV === 'development'
 
 // dev
 const files = IS_MOCK ? readdirSync('sampleImages') : []
