@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import * as d3 from 'd3'
-import { cloneDeep, isEqual, clamp } from 'lodash'
+import { cloneDeep, isEqual, clamp, pick } from 'lodash'
 import { reactive, ref, watch } from 'vue'
 import { Road, Zone } from '/@/data/zone'
 import { ZoneToNodeMap, ZoneToNodePosMap } from '/@/data/staticZones'
@@ -92,19 +92,26 @@ function getNodeAttributes(node: NodeDatum) {
 }
 
 function getLineAttributes(link: LinkDatum) {
-  function getIsLinkInPath(link: LinkDatum) {
+  const { isLinkInPath, isLastAddedPath } = (() => {
     const normalizedLink = { source: link.source.id, target: link.target.id }
-    return Navigator.pathfinderRoute.value.some(({ source, target }) => isEqual({ source, target }, normalizedLink))
-  }
+    const isLinkInPath = Navigator.pathfinderRoute.value.some(routeLink => isEqual(pick(routeLink, ['source', 'target']), normalizedLink))
+    const isLastAddedPath = isEqual(pick(Navigator.lastInspectedLink.value, ['source', 'target']), normalizedLink)
+    return { isLinkInPath, isLastAddedPath }
+  })()
 
   const opacity = (() => {
-    if ((link.source.id in Zone && link.target.id in Zone) || (link.source.id in Road && link.target.id in Road)) return 1
-    if (getIsLinkInPath(link)) return 1
+    const isSameZoneType = (link.source.id in Zone && link.target.id in Zone) || (link.source.id in Road && link.target.id in Road)
+    if (isSameZoneType || isLinkInPath || isLastAddedPath) return 1
     return .1
   })()
 
   const rest = (() => {
-    if (getIsLinkInPath(link)) return {
+    if (isLastAddedPath) return {
+      'stroke': '#ff00f6',
+      'stroke-width': 5,
+    }
+
+    if (isLinkInPath) return {
       'stroke': '#f00',
       'stroke-width': 5,
     }

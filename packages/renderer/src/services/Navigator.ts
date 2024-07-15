@@ -72,11 +72,13 @@ function getPushSound(type: Parameters<typeof AudioPlayer.play>[0]) {
 }
 
 const lastInspectedNode = ref<null | string>(null)
+const lastInspectedLink = ref<null | LinkData>(null)
 
 function push(data: LinkData) {
   const { target, source } = data
   lastInspectedNode.value = target
   if (isLinkExpired(data)) return void Events.push(new Error(`Link is expired: ${source} > ${target}`), getPushSound('error'))
+  lastInspectedLink.value = data
 
   const links = zoneToLinksMap.value[source]
   if (!(!links || !(links.includes(target)))) return void Events.push(`Duplicate link found: ${source} > ${target}`, getPushSound('notification'))
@@ -192,4 +194,5 @@ export default {
   findShortestPath,
   LinkSchema,
   lastInspectedNode,
+  lastInspectedLink,
 }
