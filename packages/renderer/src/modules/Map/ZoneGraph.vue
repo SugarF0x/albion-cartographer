@@ -122,14 +122,7 @@ function getLineAttributes(link: LinkDatum) {
     }
   })()
 
-  const position = {
-    x1: link.source.x,
-    y1: link.source.y,
-    x2: link.target.x,
-    y2: link.target.y,
-  }
-
-  return { opacity, ...rest, ...position }
+  return { opacity, ...rest }
 }
 
 function getLinkStrength(link: LinkDatum): number {
@@ -153,10 +146,25 @@ const simulation = d3.forceSimulation(inputNodes)
   .force('charge', d3.forceManyBody<NodeDatum>().strength(getNodeStrength))
   .force('x', d3.forceX())
   .force('y', d3.forceY())
-  .alphaMin(.05)
 
-const tick = ref(0)
-simulation.on('tick', () => { tick.value++; console.log('ticked!') })
+const nodesGroup = ref<SVGElement | null>(null)
+const linksGroup = ref<SVGElement | null>(null)
+simulation.on('tick', () => {
+  if (!nodesGroup.value) return
+  if (!linksGroup.value) return
+
+  Array.from(nodesGroup.value.children).forEach((node, index) => {
+    node.setAttribute('cx', String(inputNodes[index].x ?? 0))
+    node.setAttribute('cy', String(inputNodes[index].y ?? 0))
+  })
+
+  Array.from(linksGroup.value.children).forEach((link, index) => {
+    link.setAttribute('x1', String(inputLinks[index].source.x ?? 0))
+    link.setAttribute('y1', String(inputLinks[index].source.y ?? 0))
+    link.setAttribute('x2', String(inputLinks[index].target.x ?? 0))
+    link.setAttribute('y2', String(inputLinks[index].target.y ?? 0))
+  })
+})
 
 watch(Navigator.links, value => {
   inputLinks.length = 0
@@ -172,7 +180,6 @@ watch(Navigator.links, value => {
 <template>
   <svg
     id="map"
-    :key="tick"
     :viewBox="viewBox"
     @wheel="onScroll"
     @pointermove="onPointerMove"
@@ -182,10 +189,10 @@ watch(Navigator.links, value => {
   >
     <g :style="{ transform: `scale(${zoom}) translate(${offset.x}px, ${offset.y}px)` }">
       <image href="/images/albion.png" :width="IMAGE_SIZE[0]" :height="IMAGE_SIZE[1]" :x="-IMAGE_SIZE[0] / 2" :y="-IMAGE_SIZE[1] / 2" />
-      <g>
+      <g ref="linksGroup">
         <line v-for="link of inputLinks" v-bind="getLineAttributes(link)" :key="`${link.source}-${link.target}`" />
       </g>
-      <g>
+      <g ref="nodesGroup">
         <circle v-for="node of inputNodes" v-bind="getNodeAttributes(node)" :key="node.id" r="5" @click.right="(event) => $emit('click', node.id, event)">
           <title>{{ node.id }}</title>
         </circle>
