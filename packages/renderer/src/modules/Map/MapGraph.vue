@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import * as d3 from 'd3'
 import { cloneDeep, isEqual, clamp, pick } from 'lodash'
-import { reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { Road, Zone } from '/@/data/zone'
 import { ZoneToNodeMap, ZoneToNodePosMap } from '/@/data/staticZones'
 import Navigator from '/@/services/Navigator'
@@ -9,6 +9,16 @@ import Navigator from '/@/services/Navigator'
 defineEmits<{
   (e: 'click', node: string, event: MouseEvent): void
 }>()
+
+const mappedPercentage = computed(() => {
+  const mappedRoads = Navigator.links.value.reduce((acc, val) => {
+    if (val.source in Road) acc.add(val.source)
+    if (val.target in Road) acc.add(val.target)
+    return acc
+  }, new Set<string>())
+
+  return Math.floor((mappedRoads.size / Object.values(Road).length) * 1000) / 10 + '%'
+})
 
 type NodeDatum =  d3.SimulationNodeDatum & { id: string }
 type LinkDatum = { index?: number, source: NodeDatum, target: NodeDatum }
@@ -178,6 +188,7 @@ watch(Navigator.links, value => {
 </script>
 
 <template>
+  <div id="mapped-percentage">Mapped: {{ mappedPercentage }}</div>
   <svg
     id="map"
     :viewBox="viewBox"
@@ -204,6 +215,10 @@ watch(Navigator.links, value => {
 <style scoped lang="scss">
 #map {
   overflow: hidden;
+  display: flex;
+  justify-content: center;
+  max-height: 100vh;
+  z-index: 1;
 }
 
 .last-inspected-node {
@@ -215,5 +230,14 @@ watch(Navigator.links, value => {
   to {
     stroke-dashoffset: 8;
   }
+}
+
+#mapped-percentage {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  user-select: none;
+  pointer-events: none;
+  z-index: 0;
 }
 </style>
