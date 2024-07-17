@@ -40,8 +40,8 @@ const activeTab = ref<Tab>(Tab.MAIN)
 </template>
 
 <style scoped lang="scss">
-
 .controls-container {
+  max-width: min(35%, 600px);
   display: flex;
   flex-direction: column;
   flex-grow: 1;

@@ -219,6 +219,7 @@ watch(Navigator.links, value => {
   justify-content: center;
   max-height: 100vh;
   z-index: 1;
+  flex-grow: 1;
 }
 
 .last-inspected-node {
