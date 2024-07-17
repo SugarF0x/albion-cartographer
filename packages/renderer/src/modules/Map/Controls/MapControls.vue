@@ -27,6 +27,7 @@ const activeTab = ref<Tab>(Tab.MAIN)
         :key="tab"
         class="tab"
         :class="{ selected: activeTab === tab }"
+        :disabled="activeTab === tab"
         @click="activeTab = tab"
       >
         {{ tab }}

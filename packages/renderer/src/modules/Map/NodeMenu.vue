@@ -31,6 +31,7 @@ watch(() => props.open, () => { Navigator.lastInspectedNode.value = props.node }
   gap: 8px;
   display: flex;
   flex-direction: column;
+  z-index: 2;
 }
 
 .title {
