@@ -7,7 +7,7 @@ const props = defineProps<{
   position: 'from' | 'to'
 }>()
 
-const input = ref('')
+const input = ref(Navigator.pathfinder[props.position])
 const hasError = ref(false)
 
 const allZones = new Set<string>([...Object.values(Zone), ...Object.values(Road)])
@@ -18,8 +18,7 @@ watch(input, value => {
   Navigator.pathfinder[props.position] = value
 })
 
-watch(() => Navigator.pathfinder.to, value => void (props.position === 'to' && (input.value = value)))
-watch(() => Navigator.pathfinder.from, value => void (props.position === 'from' && (input.value = value)))
+watch(() => Navigator.pathfinder[props.position], value => { input.value = value })
 </script>
 
 <template>
