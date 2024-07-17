@@ -45,11 +45,15 @@ let isDragging = false
 function dragStart() { isDragging = true }
 function dragStop() { isDragging = false }
 
+const svg = ref<SVGElement | null>(null)
+
 function onPointerMove(event: PointerEvent) {
   if (!isDragging) return
+  const svgSize = Math.min(svg.value?.clientWidth ?? 0, svg.value?.clientHeight ?? 0)
+  const dragRatio = size / svgSize
   const { movementX, movementY } = event
-  offset.x += movementX / zoom.value
-  offset.y += movementY / zoom.value
+  offset.x += (movementX / zoom.value) * dragRatio
+  offset.y += (movementY / zoom.value) * dragRatio
 }
 
 function getNodeAttributes(node: NodeDatum) {
@@ -191,6 +195,7 @@ watch(Navigator.links, value => {
   <div id="mapped-percentage">Mapped: {{ mappedPercentage }}</div>
   <svg
     id="map"
+    ref="svg"
     :viewBox="viewBox"
     @wheel="onScroll"
     @pointermove="onPointerMove"
