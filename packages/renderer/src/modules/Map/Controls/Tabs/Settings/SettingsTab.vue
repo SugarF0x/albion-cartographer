@@ -15,6 +15,8 @@ function exportData() {
 function importData() {
   Navigator.import(importValue.value)
 }
+
+const isDev = location.protocol === 'http:'
 </script>
 
 <template>
@@ -26,7 +28,7 @@ function importData() {
   <textarea v-model="importValue" rows="10" />
   <button :disabled="!importValue" @click="importData">import</button>
   <button @click="exportData">export</button>
-  <button @click="importValue = getSampleData()">paste sample</button>
+  <button v-if="isDev" @click="importValue = getSampleData()">paste sample</button>
 </template>
 
 <style scoped lang="scss">
