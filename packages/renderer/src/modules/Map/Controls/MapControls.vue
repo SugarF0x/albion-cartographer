@@ -34,7 +34,9 @@ const activeTab = ref<Tab>(Tab.MAIN)
       </button>
     </div>
     <div class="tab-content">
-      <component :is="tabToComponentMap[activeTab]" />
+      <keep-alive>
+        <component :is="tabToComponentMap[activeTab]" />
+      </keep-alive>
     </div>
   </div>
 </template>
