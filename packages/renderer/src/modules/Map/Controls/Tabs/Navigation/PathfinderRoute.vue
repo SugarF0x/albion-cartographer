@@ -29,6 +29,7 @@ import { formatDistanceToNow } from 'date-fns'
 .path-table {
   border-collapse: collapse;
   border: 1px solid;
+  font-size: min(1vw, 20px);
 
   td, th {
     border: 1px solid;
