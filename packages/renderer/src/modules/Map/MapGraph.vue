@@ -220,6 +220,7 @@ watch(Navigator.links, value => {
   max-height: 100vh;
   z-index: 1;
   flex-grow: 1;
+  backface-visibility: hidden;
 }
 
 .last-inspected-node {
