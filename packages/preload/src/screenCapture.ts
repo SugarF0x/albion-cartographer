@@ -2,6 +2,7 @@ import { GlobalKeyboardListener } from 'node-global-key-listener'
 import type { IGlobalKeyDownMap, IGlobalKeyEvent } from 'node-global-key-listener'
 import { Monitor } from 'node-screenshots'
 import { readdirSync, readFileSync } from 'node:fs'
+import { ref } from 'vue'
 
 const v = new GlobalKeyboardListener()
 const monitors = Monitor.all()
@@ -20,28 +21,27 @@ function getRandomImage(): [string, [number, number]] {
 }
 // dev end
 
-export function screenCapture(onCapture: (data: string, mousePos: [number, number]) => void) {
-  function listener(e: IGlobalKeyEvent, down: IGlobalKeyDownMap) {
-    if (e.state !== 'DOWN') return
-    if (e.name !== 'MOUSE LEFT') return
-    if (!down['LEFT CTRL'] || !down['LEFT SHIFT']) return
+export const onScreenCapture = ref<null | ((data: string, mousePos: [number, number]) => void)>(null)
 
-    for (const monitor of monitors) {
-      if (!monitor.isPrimary) continue
+function listener(e: IGlobalKeyEvent, down: IGlobalKeyDownMap) {
+  if (e.state !== 'DOWN') return
+  if (e.name !== 'MOUSE LEFT') return
+  if (!down['LEFT CTRL'] || !down['LEFT SHIFT']) return
 
-      // dev
-      if (IS_MOCK) {
-        onCapture(...getRandomImage())
-        break
-      }
-      // dev end
+  for (const monitor of monitors) {
+    if (!monitor.isPrimary) continue
 
-      const image = monitor.captureImageSync()
-      onCapture(URL.createObjectURL(new Blob([image.toPngSync().buffer], { type: 'image/png' })), e.location!)
+    // dev
+    if (IS_MOCK) {
+      onScreenCapture.value?.(...getRandomImage())
       break
     }
-  }
+    // dev end
 
-  v.addListener(listener)
-  return () => v.removeListener(listener)
+    const image = monitor.captureImageSync()
+    onScreenCapture.value?.(URL.createObjectURL(new Blob([image.toPngSync().buffer], { type: 'image/png' })), e.location!)
+    break
+  }
 }
+
+void v.addListener(listener)
