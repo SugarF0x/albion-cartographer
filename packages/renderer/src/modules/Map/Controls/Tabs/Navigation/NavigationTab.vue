@@ -13,6 +13,8 @@ function clearPath() {
 }
 
 const autoSearch = ref(false)
+const notifyFavoritesLinkFound = ref(false)
+
 watch(Navigator.links.all, () => {
   if (!autoSearch.value) return
   const previousPath = [...Navigator.pathfinder.route.value]
@@ -22,6 +24,16 @@ watch(Navigator.links.all, () => {
     Events.push(`Found path: ${Navigator.pathfinder.link.from} > ${Navigator.pathfinder.link.to}`, 'alert')
   }
 })
+
+watch(Navigator.links.all, value => {
+  if (!notifyFavoritesLinkFound.value) return
+  const lastItem = value.at(-1)
+  if (!lastItem) return
+
+  if (Navigator.nodes.favorites.value.includes(lastItem.target)) {
+    Events.push(`Found connection to: ${lastItem.target} < ${lastItem.source}`, 'alert')
+  }
+})
 </script>
 
 <template>
@@ -29,8 +41,14 @@ watch(Navigator.links.all, () => {
   <zone-selector position="from" />
   to
   <zone-selector position="to" />
-  auto search
-  <input v-model="autoSearch" type="checkbox" />
+  <div class="flex">
+    <input v-model="autoSearch" type="checkbox" />
+    auto search
+  </div>
+  <div class="flex">
+    <input v-model="notifyFavoritesLinkFound" type="checkbox" />
+    notify on favorites connection found
+  </div>
   <button @click="clearPath">clear</button>
   <pathfinder-route />
   <div style="flex: 1" />
@@ -38,5 +56,8 @@ watch(Navigator.links.all, () => {
 </template>
 
 <style scoped lang="scss">
-
+.flex {
+  display: flex;
+  gap: 4px;
+}
 </style>
