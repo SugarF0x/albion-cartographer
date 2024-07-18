@@ -16,6 +16,7 @@ watch(input, value => {
 
   hasError.value = false
   Navigator.pathfinder.link[props.position] = value
+  Navigator.inspector.node.value = value || null
 })
 
 watch(() => Navigator.pathfinder.link[props.position], value => { input.value = value })
