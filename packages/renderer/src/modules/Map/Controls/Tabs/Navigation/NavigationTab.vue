@@ -4,6 +4,7 @@ import { ref, watch } from 'vue'
 import Events from '/@/services/Events'
 import ZoneSelector from '/@/modules/Map/Controls/Tabs/Navigation/ZoneSelector.vue'
 import PathfinderRoute from '/@/modules/Map/Controls/Tabs/Navigation/PathfinderRoute.vue'
+import FavoriteNodes from '/@/modules/Map/Controls/Tabs/Navigation/FavoriteNodes.vue'
 
 function clearPath() {
   Navigator.pathfinder.route.value.length = 0
@@ -28,10 +29,12 @@ watch(Navigator.links.all, () => {
   <zone-selector position="from" />
   to
   <zone-selector position="to" />
-  auto seach
+  auto search
   <input v-model="autoSearch" type="checkbox" />
   <button @click="clearPath">clear</button>
   <pathfinder-route />
+  <div style="flex: 1" />
+  <favorite-nodes />
 </template>
 
 <style scoped lang="scss">
