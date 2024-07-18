@@ -224,7 +224,7 @@ watch(Navigator.links.all, value => {
   justify-content: center;
   max-height: 100vh;
   z-index: 1;
-  flex-grow: 1;
+  flex: 2;
   backface-visibility: hidden;
 }
 

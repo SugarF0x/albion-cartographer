@@ -4,7 +4,7 @@ import Navigator from '/@/services/Navigator'
 
 <template>
   <div class="favorite-nodes">
-    favorites
+    <h3>favorites</h3>
     <div v-for="node of Navigator.nodes.favorites.value" :key="node" class="item">
       <div>{{ node }}</div>
       <button @click="Navigator.inspector.node.value = node">select</button>

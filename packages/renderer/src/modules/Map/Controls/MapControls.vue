@@ -43,10 +43,10 @@ const activeTab = ref<Tab>(Tab.MAIN)
 
 <style scoped lang="scss">
 .controls-container {
-  width: 35%;
+  max-width: 50vh;
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+  flex: 1;
   gap: 4px;
 
   background-color: #323B44;
