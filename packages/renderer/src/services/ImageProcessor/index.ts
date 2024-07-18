@@ -1,5 +1,5 @@
 import { onBeforeUnmount, onMounted } from 'vue'
-import { onScreenCapture } from '#preload'
+import { setOnScreenCapture } from '#preload'
 import { parse } from '/@/services/ImageProcessor/parser'
 import { preprocessImageForOCR } from '/@/services/ImageProcessor/processor'
 import { read } from '/@/services/ImageProcessor/reader'
@@ -28,6 +28,6 @@ export default function useImageProcessor() {
     }
   }
 
-  onMounted(() => { onScreenCapture.value = process })
-  onBeforeUnmount(() => { onScreenCapture.value = null })
+  onMounted(() => { setOnScreenCapture(process) })
+  onBeforeUnmount(() => { setOnScreenCapture(null) })
 }

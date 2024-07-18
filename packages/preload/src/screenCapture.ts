@@ -21,7 +21,9 @@ function getRandomImage(): [string, [number, number]] {
 }
 // dev end
 
-export const onScreenCapture = ref<null | ((data: string, mousePos: [number, number]) => void)>(null)
+const captureHandler = ref<null | ((data: string, mousePos: [number, number]) => void)>(null)
+
+export function setOnScreenCapture(handler: typeof captureHandler.value) { captureHandler.value = handler }
 
 function listener(e: IGlobalKeyEvent, down: IGlobalKeyDownMap) {
   if (e.state !== 'DOWN') return
@@ -33,13 +35,13 @@ function listener(e: IGlobalKeyEvent, down: IGlobalKeyDownMap) {
 
     // dev
     if (IS_MOCK) {
-      onScreenCapture.value?.(...getRandomImage())
+      captureHandler.value?.(...getRandomImage())
       break
     }
     // dev end
 
     const image = monitor.captureImageSync()
-    onScreenCapture.value?.(URL.createObjectURL(new Blob([image.toPngSync().buffer], { type: 'image/png' })), e.location!)
+    captureHandler.value?.(URL.createObjectURL(new Blob([image.toPngSync().buffer], { type: 'image/png' })), e.location!)
     break
   }
 }
