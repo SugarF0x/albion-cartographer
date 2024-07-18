@@ -43,7 +43,7 @@ const activeTab = ref<Tab>(Tab.MAIN)
 
 <style scoped lang="scss">
 .controls-container {
-  max-width: min(35%, 600px);
+  width: 35%;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -61,10 +61,11 @@ const activeTab = ref<Tab>(Tab.MAIN)
 
 .tabs-container {
   display: flex;
-  padding: 8px 32px;
+  padding: 8px 8px;
   justify-content: space-between;
   border-bottom: 4px solid #5d6876;
-  gap: 16px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .tab {
