@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Navigator from '/@/services/Navigator'
-import { watch } from 'vue'
+import { computed, watch } from 'vue'
 
 const props = defineProps<{
   x: number
@@ -10,6 +10,13 @@ const props = defineProps<{
 }>()
 
 watch(() => props.open, () => { Navigator.inspector.node.value = props.node })
+
+const isFavorite = computed(() => Navigator.nodes.favorites.value.includes(props.node))
+
+function toggleFavorite() {
+  if (isFavorite.value) Navigator.nodes.favorites.value.splice(Navigator.nodes.favorites.value.indexOf(props.node), 1)
+  else Navigator.nodes.favorites.value.push(props.node)
+}
 </script>
 
 <template>
@@ -17,6 +24,7 @@ watch(() => props.open, () => { Navigator.inspector.node.value = props.node })
     <div class="title">{{ node }}</div>
     <button @click="Navigator.pathfinder.link.from = node">from</button>
     <button @click="Navigator.pathfinder.link.to = node">to</button>
+    <button @click="toggleFavorite">{{ isFavorite ? 'un' : '' }}favorite</button>
   </div>
 </template>
 

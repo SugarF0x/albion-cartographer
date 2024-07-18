@@ -24,6 +24,7 @@ function isLinkNotExpired(item: LinkData): boolean {
 }
 
 const storeLinks = useLocalStorage<LinkData[]>('customLinks', [])
+const favoriteNodes = useLocalStorage<string[]>('favoriteNodes', [])
 
 let cleanupTimeout: NodeJS.Timeout | null = null
 function scheduleRemoval() {
@@ -197,6 +198,7 @@ export default {
   },
   nodes: {
     toLinksMap: zoneToLinksMap,
+    favorites: favoriteNodes,
   },
   LinkSchema,
   inspector: {
