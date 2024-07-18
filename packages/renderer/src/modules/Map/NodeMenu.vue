@@ -9,14 +9,14 @@ const props = defineProps<{
   node: string
 }>()
 
-watch(() => props.open, () => { Navigator.lastInspectedNode.value = props.node })
+watch(() => props.open, () => { Navigator.inspector.node.value = props.node })
 </script>
 
 <template>
   <div v-if="open" id="node-menu" :style="{ top: String(y) + 'px', left: String(x) + 'px' }">
     <div class="title">{{ node }}</div>
-    <button @click="Navigator.pathfinder.from = node">from</button>
-    <button @click="Navigator.pathfinder.to = node">to</button>
+    <button @click="Navigator.pathfinder.link.from = node">from</button>
+    <button @click="Navigator.pathfinder.link.to = node">to</button>
   </div>
 </template>
 

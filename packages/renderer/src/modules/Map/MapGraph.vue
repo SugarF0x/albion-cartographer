@@ -11,7 +11,7 @@ defineEmits<{
 }>()
 
 const mappedPercentage = computed(() => {
-  const mappedRoads = Navigator.links.value.reduce((acc, val) => {
+  const mappedRoads = Navigator.links.all.value.reduce((acc, val) => {
     if (val.source in Road) acc.add(val.source)
     if (val.target in Road) acc.add(val.target)
     return acc
@@ -26,7 +26,7 @@ type LinkDatum = { index?: number, source: NodeDatum, target: NodeDatum }
 const zones: NodeDatum[] = Object.values(Zone).map(zone => ({ id: zone, fx: ZoneToNodePosMap[zone].x, fy: ZoneToNodePosMap[zone].y }))
 const roads: NodeDatum[] = Object.values(Road).map(zone => ({ id: zone }))
 const inputNodes = [...zones, ...roads]
-const inputLinks = cloneDeep(Navigator.links.value) as unknown as LinkDatum[]
+const inputLinks = cloneDeep(Navigator.links.all.value) as unknown as LinkDatum[]
 
 const IMAGE_SIZE = [512, 1024].map(e => e * 1.55)
 const size = 1024 * 1.15
@@ -79,12 +79,12 @@ function getNodeAttributes(node: NodeDatum) {
   })()
 
   const opacity = (() => {
-    if (id in Navigator.zoneToLinksMap.value || Navigator.lastInspectedNode.value === id) return 1
+    if (id in Navigator.nodes.toLinksMap.value || Navigator.inspector.node.value === id) return 1
     return .25
   })()
 
   const rest = (() => {
-    if (Navigator.lastInspectedNode.value === id) return {
+    if (Navigator.inspector.node.value === id) return {
       'stroke': '#ff00f6',
       'stroke-dasharray': 4,
       'stroke-width': 10,
@@ -108,8 +108,8 @@ function getNodeAttributes(node: NodeDatum) {
 function getLineAttributes(link: LinkDatum) {
   const { isLinkInPath, isLastAddedPath } = (() => {
     const normalizedLink = { source: link.source.id, target: link.target.id }
-    const isLinkInPath = Navigator.pathfinderRoute.value.some(routeLink => isEqual(pick(routeLink, ['source', 'target']), normalizedLink))
-    const isLastAddedPath = isEqual(pick(Navigator.lastInspectedLink.value, ['source', 'target']), normalizedLink)
+    const isLinkInPath = Navigator.pathfinder.route.value.some(routeLink => isEqual(pick(routeLink, ['source', 'target']), normalizedLink))
+    const isLastAddedPath = isEqual(pick(Navigator.inspector.link.value, ['source', 'target']), normalizedLink)
     return { isLinkInPath, isLastAddedPath }
   })()
 
@@ -180,7 +180,7 @@ simulation.on('tick', () => {
   })
 })
 
-watch(Navigator.links, value => {
+watch(Navigator.links.all, value => {
   inputLinks.length = 0
   Object.assign(inputLinks, cloneDeep(value))
 

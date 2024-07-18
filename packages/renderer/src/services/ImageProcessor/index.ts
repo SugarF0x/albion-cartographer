@@ -1,10 +1,10 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 import { screenCapture } from '#preload'
-import { parse } from '/src/services/ImageProcessor/parser'
-import { preprocessImageForOCR } from '/src/services/ImageProcessor/processor'
-import { read } from '/src/services/ImageProcessor/reader'
-import Navigator from '/src/services/Navigator'
-import Events from '/src/services/Events'
+import { parse } from '/@/services/ImageProcessor/parser'
+import { preprocessImageForOCR } from '/@/services/ImageProcessor/processor'
+import { read } from '/@/services/ImageProcessor/reader'
+import Navigator from '/@/services/Navigator'
+import Events from '/@/services/Events'
 
 export default function useImageProcessor() {
   onMounted(() => {
@@ -23,7 +23,7 @@ export default function useImageProcessor() {
         const time = Number(await read(portalTime))
 
         const expiration = new Date(Date.now() + time).toISOString()
-        Navigator.push({ source, target, expiration })
+        Navigator.links.push({ source, target, expiration })
       } catch (e) {
         Events.push(String(e), 'error')
       }

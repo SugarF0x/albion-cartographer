@@ -8,12 +8,12 @@ import AudioPlayer from '/@/services/AudioPlayer'
 const importValue = ref('')
 
 function exportData() {
-  importValue.value = Navigator.export()
+  importValue.value = Navigator.links.export()
   Events.push('Pushed current state for export', 'alert')
 }
 
 function importData() {
-  Navigator.import(importValue.value)
+  Navigator.links.import(importValue.value)
 }
 
 const isDev = location.protocol === 'http:'

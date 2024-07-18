@@ -6,19 +6,19 @@ import ZoneSelector from '/@/modules/Map/Controls/Tabs/Navigation/ZoneSelector.v
 import PathfinderRoute from '/@/modules/Map/Controls/Tabs/Navigation/PathfinderRoute.vue'
 
 function clearPath() {
-  Navigator.pathfinderRoute.value.length = 0
-  Navigator.pathfinder.from = ''
-  Navigator.pathfinder.to = ''
+  Navigator.pathfinder.route.value.length = 0
+  Navigator.pathfinder.link.from = ''
+  Navigator.pathfinder.link.to = ''
 }
 
 const autoSearch = ref(false)
-watch(Navigator.links, () => {
+watch(Navigator.links.all, () => {
   if (!autoSearch.value) return
-  const previousPath = [...Navigator.pathfinderRoute.value]
-  const didFind = Navigator.findShortestPath(Navigator.pathfinder.from, Navigator.pathfinder.to)
+  const previousPath = [...Navigator.pathfinder.route.value]
+  const didFind = Navigator.pathfinder.search()
   if (autoSearch.value && didFind) {
-    if (previousPath.length !== 0 && previousPath.length <= Navigator.pathfinderRoute.value.length) return
-    Events.push(`Found path: ${Navigator.pathfinder.from} > ${Navigator.pathfinder.to}`, 'alert')
+    if (previousPath.length !== 0 && previousPath.length <= Navigator.pathfinder.route.value.length) return
+    Events.push(`Found path: ${Navigator.pathfinder.link.from} > ${Navigator.pathfinder.link.to}`, 'alert')
   }
 })
 </script>
@@ -31,7 +31,7 @@ watch(Navigator.links, () => {
   auto seach
   <input v-model="autoSearch" type="checkbox" />
   <button @click="clearPath">clear</button>
-  <button @dblclick="Navigator.flush">clear storage</button>
+  <button @dblclick="Navigator.links.flush">clear storage</button>
   <pathfinder-route />
 </template>
 

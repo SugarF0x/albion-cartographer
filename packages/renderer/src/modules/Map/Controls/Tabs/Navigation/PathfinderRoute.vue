@@ -4,7 +4,7 @@ import { formatDistanceToNow } from 'date-fns'
 </script>
 
 <template>
-  <div v-if="!Navigator.pathfinderRoute.value.length">No path found</div>
+  <div v-if="!Navigator.pathfinder.route.value.length">No path found</div>
   <table v-else class="path-table">
     <thead>
       <tr>
@@ -14,7 +14,7 @@ import { formatDistanceToNow } from 'date-fns'
       </tr>
     </thead>
     <tbody>
-      <tr v-for="link of Navigator.pathfinderRoute.value" :key="link.source">
+      <tr v-for="link of Navigator.pathfinder.route.value" :key="link.source">
         <td>{{ link.source }}</td>
         <td>{{ link.target }}</td>
         <td>

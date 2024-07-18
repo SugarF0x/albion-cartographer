@@ -116,10 +116,10 @@ function flush() {
   storeLinks.value = []
 }
 
-const pathfinder = reactive({ from: '', to: '' })
+const pathfinderLink = reactive({ from: '', to: '' })
 const pathfinderRoute = ref<LinkData[]>([])
 
-watchEffect(() => { findShortestPath(pathfinder.from, pathfinder.to) })
+watchEffect(() => { findShortestPath(pathfinderLink.from, pathfinderLink.to) })
 
 const pathExpiration = computed(() => {
   const minExpiration = pathfinderRoute.value.reduce((acc, val) => Math.min(acc, new Date(val.expiration).valueOf() || Infinity), Infinity)
@@ -127,7 +127,7 @@ const pathExpiration = computed(() => {
   return 'never'
 })
 
-export function findShortestPath(startNode: string, endNode: string) {
+export function findShortestPath(startNode = pathfinderLink.from, endNode = pathfinderLink.to) {
   if (!startNode || !endNode) return false
 
   if (startNode === endNode) {
@@ -182,17 +182,25 @@ scheduleRemoval()
 watch(storeLinks, scheduleRemoval, { deep: true })
 
 export default {
-  links,
-  pathfinder,
-  pathfinderRoute,
-  pathExpiration,
-  zoneToLinksMap,
-  push,
-  import: importRaw,
-  export: exportRaw,
-  flush,
-  findShortestPath,
+  links: {
+    all: links,
+    push,
+    import: importRaw,
+    export: exportRaw,
+    flush,
+  },
+  pathfinder: {
+    link: pathfinderLink,
+    route: pathfinderRoute,
+    expiration: pathExpiration,
+    search: findShortestPath,
+  },
+  nodes: {
+    toLinksMap: zoneToLinksMap,
+  },
   LinkSchema,
-  lastInspectedNode,
-  lastInspectedLink,
+  inspector: {
+    node: lastInspectedNode,
+    link: lastInspectedLink,
+  },
 }
