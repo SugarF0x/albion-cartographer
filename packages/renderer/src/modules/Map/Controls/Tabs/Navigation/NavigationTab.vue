@@ -31,7 +31,6 @@ watch(Navigator.links.all, () => {
   auto seach
   <input v-model="autoSearch" type="checkbox" />
   <button @click="clearPath">clear</button>
-  <button @dblclick="Navigator.links.flush">clear storage</button>
   <pathfinder-route />
 </template>
 

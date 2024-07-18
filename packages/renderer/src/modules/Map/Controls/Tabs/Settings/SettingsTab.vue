@@ -16,6 +16,13 @@ function importData() {
   Navigator.links.import(importValue.value)
 }
 
+function flush() {
+  const shouldDelete = confirm('Are you sure you want to delete all your local links data?')
+  if (!shouldDelete) return
+  Navigator.links.flush()
+  Events.push('Cleared links data')
+}
+
 const isDev = location.protocol === 'http:'
 </script>
 
@@ -29,6 +36,7 @@ const isDev = location.protocol === 'http:'
   <button :disabled="!importValue" @click="importData">import</button>
   <button @click="exportData">export</button>
   <button v-if="isDev" @click="importValue = getSampleData()">paste sample</button>
+  <button @click="flush">clear storage</button>
 </template>
 
 <style scoped lang="scss">
