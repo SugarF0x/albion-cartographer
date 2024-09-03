@@ -49,7 +49,8 @@ watch(Navigator.links.all, value => {
     <input v-model="notifyFavoritesLinkFound" type="checkbox" />
     notify on favorites connection found
   </div>
-  <button @click="clearPath">clear</button>
+  <button @click="clearPath">clear path</button>
+  <button @click="Navigator.inspector.link.value = null">remove last inspected link</button>
   <pathfinder-route />
   <div style="flex: 1" />
   <favorite-nodes />
