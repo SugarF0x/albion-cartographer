@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Navigator from '/@/services/Navigator'
 import { computed, watch } from 'vue'
+import { Road } from '/@/data/zone'
 
 const props = defineProps<{
   x: number
@@ -24,6 +25,7 @@ function toggleFavorite() {
     <div class="title">{{ node }}</div>
     <button @click="Navigator.pathfinder.link.from = node">from</button>
     <button @click="Navigator.pathfinder.link.to = node">to</button>
+    <button v-if="node in Road" @click="Navigator.pathfinder.exits(node)">find exits</button>
     <button @click="toggleFavorite">{{ isFavorite ? 'un' : '' }}favorite</button>
   </div>
 </template>

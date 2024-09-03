@@ -6,7 +6,7 @@ import { cloneDeep } from 'lodash'
 import { formatDistanceToNow, isBefore, differenceInMinutes } from 'date-fns'
 import Events from '/@/services/Events'
 import type AudioPlayer from '/@/services/AudioPlayer'
-import { Zone } from '/@/data/zone'
+import { Road, Zone } from '/@/data/zone'
 
 export type LinkData = z.infer<typeof LinkSchema>
 const LinkSchema = z.object({
@@ -130,8 +130,41 @@ function flush() {
 
 const pathfinderLink = reactive({ from: '', to: '' })
 const pathfinderRoute = ref<LinkData[]>([])
+const pathfinderExitRoutes = ref<LinkData[][]>([])
 
-watchEffect(() => { findShortestPath(pathfinderLink.from, pathfinderLink.to) })
+function findAllPortalExits(node: string) {
+  pathfinderExitRoutes.value = []
+
+  if (node in Zone) return []
+  if (!(node in Road)) return []
+
+  const inspectedRoads = new Set<string>()
+  const queue: string[] = [node]
+
+  for (let item = queue.pop(); item; item = queue.pop()) {
+    inspectedRoads.add(item)
+    if (item in Road) {
+      for (const exit of zoneToLinksMap.value[item]) {
+        if (!inspectedRoads.has(exit)) queue.push(exit)
+      }
+    }
+  }
+
+  const zones = Array.from(inspectedRoads)
+  const exits = zones.filter(zone => zone in Zone)
+
+  for (const exit of exits) {
+    const path = findShortestPath(node, exit)
+    if (!path.length) continue
+    pathfinderExitRoutes.value.push(path)
+  }
+
+  if (!pathfinderExitRoutes.value.length) return
+
+  pathfinderRoute.value = pathfinderExitRoutes.value[0]
+}
+
+watchEffect(() => { findAndRegisterShortedPath(pathfinderLink.from, pathfinderLink.to) })
 
 const pathExpiration = computed(() => {
   const minExpiration = pathfinderRoute.value.reduce((acc, val) => Math.min(acc, new Date(val.expiration).valueOf() || Infinity), Infinity)
@@ -139,13 +172,22 @@ const pathExpiration = computed(() => {
   return 'never'
 })
 
-export function findShortestPath(startNode = pathfinderLink.from, endNode = pathfinderLink.to) {
-  if (!startNode || !endNode) return false
+function findAndRegisterShortedPath(...args: Parameters<typeof findShortestPath>): boolean {
+  pathfinderExitRoutes.value = []
+  const path = findShortestPath(...args)
 
-  if (startNode === endNode) {
-    pathfinderRoute.value = []
+  if (path.length) {
+    pathfinderRoute.value = path
     return true
   }
+
+  pathfinderRoute.value = []
+  return false
+}
+
+function findShortestPath(startNode = pathfinderLink.from, endNode = pathfinderLink.to) {
+  if (!startNode || !endNode) return []
+  if (startNode === endNode) return []
 
   const queue: string[][] = [[startNode]]
   const visited: Set<string> = new Set([startNode])
@@ -174,8 +216,7 @@ export function findShortestPath(startNode = pathfinderLink.from, endNode = path
           result.push({ source, target, expiration })
         }
 
-        pathfinderRoute.value = result
-        return true
+        return result
       }
 
       if (!visited.has(neighbor)) {
@@ -185,8 +226,7 @@ export function findShortestPath(startNode = pathfinderLink.from, endNode = path
     }
   }
 
-  pathfinderRoute.value = []
-  return false
+  return []
 }
 
 removeExpired()
@@ -205,7 +245,9 @@ export default {
     link: pathfinderLink,
     route: pathfinderRoute,
     expiration: pathExpiration,
-    search: findShortestPath,
+    exitRoutes: pathfinderExitRoutes,
+    search: findAndRegisterShortedPath,
+    exits: findAllPortalExits,
   },
   nodes: {
     toLinksMap: zoneToLinksMap,
