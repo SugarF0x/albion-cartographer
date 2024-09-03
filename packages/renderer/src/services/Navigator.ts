@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { useLocalStorage } from '@vueuse/core'
 import { ZoneToLinksMap } from '/@/data/staticZones'
 import { cloneDeep } from 'lodash'
-import { formatDistanceToNow, isBefore } from 'date-fns'
+import { formatDistanceToNow, isBefore, differenceInMinutes } from 'date-fns'
 import Events from '/@/services/Events'
 import type AudioPlayer from '/@/services/AudioPlayer'
 import { Zone } from '/@/data/zone'
@@ -23,6 +23,7 @@ function isLinkNotExpired(item: LinkData): boolean {
   return !isLinkExpired(item)
 }
 
+// TODO: create a two-way map for getting these links without having to find through this
 const storeLinks = useLocalStorage<LinkData[]>('customLinks', [])
 const favoriteNodes = useLocalStorage<string[]>('favoriteNodes', [])
 
@@ -76,13 +77,23 @@ const lastInspectedNode = ref<null | string>(null)
 const lastInspectedLink = ref<null | LinkData>(null)
 
 function push(data: LinkData) {
-  const { target, source } = data
+  const { target, source, expiration } = data
   lastInspectedNode.value = target
   if (isLinkExpired(data)) return void Events.push(new Error(`Link is expired: ${source} > ${target}`), getPushSound('error'))
   lastInspectedLink.value = data
 
   const links = zoneToLinksMap.value[source]
-  if (!(!links || !(links.includes(target)))) return void Events.push(`Duplicate link found: ${source} > ${target}`, getPushSound('notification'))
+  if (links && links.includes(target)) {
+    const { expiration: storeExpiration } = storeLinks.value.find(link => (link.target === target && link.source === source) || (link.target === source && link.source === target)) ?? {}
+    if (!storeExpiration) return void Events.push(new Error(`Duplicate route found but link missing from store: ${source} > ${target}`), getPushSound('error'))
+
+    const expirationDifference = differenceInMinutes(new Date(expiration), new Date(storeExpiration))
+    if (expirationDifference < 10) return void Events.push(`Duplicate link found: ${source} > ${target}`, getPushSound('notification'))
+
+    Events.push(`Link timer updated: ${source} > ${target} [+${expirationDifference}min]`, getPushSound('notification'))
+    storeLinks.value.push(data)
+    return
+  }
 
   Events.push(`Added new link: ${source} > ${target}`, getPushSound('open'))
   storeLinks.value.push(data)
