@@ -3,14 +3,21 @@ import Navigator from '/@/services/Navigator'
 import { formatDistanceToNow } from 'date-fns'
 import { computed, ref, watch } from 'vue'
 
+const isExitRouteInverted = ref(false)
 const exitRouteIndex = ref(0)
 watch(Navigator.pathfinder.exitRoutes, () => { exitRouteIndex.value = 0 })
 
 const isExitRoutesMode = computed(() => Navigator.pathfinder.exitRoutes.value.length)
 
 const route = computed(() => {
-  if (isExitRoutesMode.value) return Navigator.pathfinder.exitRoutes.value[exitRouteIndex.value]
-  return Navigator.pathfinder.route.value
+  if (!isExitRoutesMode.value) return Navigator.pathfinder.route.value
+
+  if (isExitRouteInverted.value) {
+    const reversedRoute = Navigator.pathfinder.exitRoutes.value[exitRouteIndex.value].toReversed()
+    return reversedRoute.map(link => ({ ...link, source: link.target, target: link.source }))
+  }
+
+  return Navigator.pathfinder.exitRoutes.value[exitRouteIndex.value]
 })
 
 watch(route, value => {
@@ -22,10 +29,11 @@ watch(route, value => {
 <template>
   <div v-if="!route.length">No path found</div>
   <template v-else>
-    <div v-if="isExitRoutesMode">
+    <div v-if="isExitRoutesMode" class="exits-list-controls">
       <button :disabled="exitRouteIndex - 1 < 0" @click="exitRouteIndex--">&triangleleft;</button>
       <span>{{ exitRouteIndex + 1 }}</span>
       <button :disabled="exitRouteIndex + 1 >= Navigator.pathfinder.exitRoutes.value.length" @click="exitRouteIndex++">&triangleright;</button>
+      <button @click="isExitRouteInverted = !isExitRouteInverted">invert</button>
     </div>
     <table class="path-table">
       <thead>
@@ -58,5 +66,10 @@ watch(route, value => {
     border: 1px solid;
     padding: 4px;
   }
+}
+
+.exits-list-controls {
+  display: flex;
+  gap: 4px;
 }
 </style>
