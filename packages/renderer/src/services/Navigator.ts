@@ -135,8 +135,8 @@ const pathfinderExitRoutes = ref<LinkData[][]>([])
 function findAllPortalExits(node: string) {
   pathfinderExitRoutes.value = []
 
-  if (node in Zone) return []
-  if (!(node in Road)) return []
+  if (node in Zone) return
+  if (!(node in Road)) return
 
   const inspectedRoads = new Set<string>()
   const queue: string[] = [node]
@@ -153,14 +153,17 @@ function findAllPortalExits(node: string) {
   const zones = Array.from(inspectedRoads)
   const exits = zones.filter(zone => zone in Zone)
 
+  const exitRoutes: LinkData[][] = []
   for (const exit of exits) {
     const path = findShortestPath(node, exit)
     if (!path.length) continue
-    pathfinderExitRoutes.value.push(path)
+    exitRoutes.push(path)
   }
 
-  if (!pathfinderExitRoutes.value.length) return
+  exitRoutes.sort((a,b) => a.length - b.length)
+  pathfinderExitRoutes.value = exitRoutes
 
+  if (!pathfinderExitRoutes.value.length) return
   pathfinderRoute.value = pathfinderExitRoutes.value[0]
 }
 
