@@ -2,6 +2,7 @@
 import Navigator from '/@/services/Navigator'
 import { computed, watch } from 'vue'
 import { Road } from '/@/data/zone'
+import { getZoneLocale } from '/@/data/locales'
 
 const props = defineProps<{
   x: number
@@ -22,7 +23,7 @@ function toggleFavorite() {
 
 <template>
   <div v-if="open" id="node-menu" :style="{ top: String(y) + 'px', left: String(x) + 'px' }">
-    <div class="title">{{ node }}</div>
+    <div class="title">{{ getZoneLocale(node) }}</div>
     <button @click="Navigator.pathfinder.link.from = node">from</button>
     <button @click="Navigator.pathfinder.link.to = node">to</button>
     <button v-if="node in Road" @click="Navigator.pathfinder.exits(node)">find exits</button>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import Navigator from '/@/services/Navigator'
 import { formatDistanceToNow } from 'date-fns'
 import { computed, ref, watch } from 'vue'
+import Navigator from '/@/services/Navigator'
+import { getZoneLocale } from '/@/data/locales'
 
 const isExitRouteInverted = ref(false)
 const exitRouteIndex = ref(0)
@@ -45,8 +46,8 @@ watch(route, value => {
       </thead>
       <tbody>
         <tr v-for="link of route" :key="link.source">
-          <td>{{ link.source }}</td>
-          <td>{{ link.target }}</td>
+          <td>{{ getZoneLocale(link.source) }}</td>
+          <td>{{ getZoneLocale(link.target) }}</td>
           <td>
             <template v-if="link.expiration !== 'never'">{{ formatDistanceToNow(new Date(link.expiration)) }}</template>
           </td>

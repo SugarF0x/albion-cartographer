@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import Navigator from '/@/services/Navigator'
+import { getZoneLocale } from '/@/data/locales'
 </script>
 
 <template>
   <div class="favorite-nodes">
     <h3>favorites</h3>
     <div v-for="node of Navigator.nodes.favorites.value" :key="node" class="item">
-      <div>{{ node }}</div>
+      <div>{{ getZoneLocale(node) }}</div>
       <button @click="Navigator.inspector.node.value = node">select</button>
     </div>
   </div>
