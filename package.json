@@ -63,6 +63,7 @@
     "electron-updater": "6.2.1",
     "electron-window-state": "^5.0.3",
     "fuse.js": "^7.0.0",
+    "html2canvas": "^1.4.1",
     "lodash": "^4.17.21",
     "node-global-key-listener": "^0.3.0",
     "node-screenshots": "^0.2.0",

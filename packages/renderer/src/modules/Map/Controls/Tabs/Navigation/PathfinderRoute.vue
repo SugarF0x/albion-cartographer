@@ -3,6 +3,8 @@ import { formatDistanceToNow } from 'date-fns'
 import { computed, ref, watch } from 'vue'
 import Navigator from '/@/services/Navigator'
 import { getZoneLocale } from '/@/data/locales'
+import html2canvas from 'html2canvas'
+import { copyImage } from '#preload'
 
 const isExitRouteInverted = ref(false)
 const exitRouteIndex = ref(0)
@@ -25,6 +27,30 @@ watch(route, value => {
   if (!isExitRoutesMode.value) return
   Navigator.pathfinder.route.value = value
 })
+
+const tableRef = ref<HTMLTableElement | null>(null)
+const isCopying = ref(false)
+function copyAsImage() {
+  if (!tableRef.value) return
+  isCopying.value = true
+
+  const width = tableRef.value.offsetWidth
+  const scale = 512 / width
+
+  /**
+   * @Reason the disabled state on the element does not have enough time to update
+   * and when the copying takes place, the app freezes leaving the button in enabled state visually
+   * This ensures that the button disabled first and then the copying commences.
+   * Awaiting next tick does not work
+   */
+  setTimeout(() => {
+    if (!tableRef.value) return
+    html2canvas(tableRef.value, { backgroundColor: '#323B44', scale }).then(canvas => {
+      copyImage(canvas.toDataURL('image/png'))
+      isCopying.value = false
+    })
+  }, 10)
+}
 </script>
 
 <template>
@@ -36,7 +62,7 @@ watch(route, value => {
       <button :disabled="exitRouteIndex + 1 >= Navigator.pathfinder.exitRoutes.value.length" @click="exitRouteIndex++">&triangleright;</button>
       <button @click="isExitRouteInverted = !isExitRouteInverted">invert</button>
     </div>
-    <table class="path-table">
+    <table ref="tableRef" class="path-table">
       <thead>
         <tr>
           <th>from</th>
@@ -54,6 +80,7 @@ watch(route, value => {
         </tr>
       </tbody>
     </table>
+    <button class="copy" :disabled="isCopying" @click="copyAsImage">copy as image</button>
   </template>
 </template>
 
@@ -72,5 +99,13 @@ watch(route, value => {
 .exits-list-controls {
   display: flex;
   gap: 4px;
+}
+
+button.copy {
+  margin-left: auto;
+
+  &:disabled {
+    background-color: grey;
+  }
 }
 </style>
