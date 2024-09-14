@@ -5,6 +5,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { Road, Zone } from '/@/data/zone'
 import { ZoneToNodeMap, ZoneToNodePosMap } from '/@/data/staticZones'
 import Navigator from '/@/services/Navigator'
+import { getZoneLocale } from '/@/data/locales'
 
 defineEmits<{
   (e: 'click', node: string, event: MouseEvent): void
@@ -210,7 +211,9 @@ watch(Navigator.links.all, value => {
       </g>
       <g ref="nodesGroup">
         <circle v-for="node of inputNodes" v-bind="getNodeAttributes(node)" :key="node.id" r="5" @click.right="(event) => $emit('click', node.id, event)">
-          <title>{{ node.id }}</title>
+          <title>{{ getZoneLocale(node.id) }}</title>
+          <!-- Webstorm does not highlight this as used fn if referenced from within title tag -->
+          {{ void getZoneLocale(node.id) }}
         </circle>
       </g>
     </g>
