@@ -52,8 +52,8 @@ function copyAsImage() {
   }, 10)
 }
 
-function copyExpirationStamp() {
-  if (!route.value.length) return
+function getFormattedExpirationStamp() {
+  if (!route.value.length) return null
 
   const minExpiration = route.value.reduce((acc, val) => {
     if (!acc) return val.expiration
@@ -62,7 +62,25 @@ function copyExpirationStamp() {
   }, '')
 
   const timestamp = Math.floor(new Date(minExpiration).getTime() / 1000)
-  copyText(`Закрывается <t:${timestamp}:R>`)
+  return `Закрывается <t:${timestamp}:R>`
+}
+
+function copyExpirationStamp() {
+  const stamp = getFormattedExpirationStamp()
+  if (!stamp) return
+
+  copyText(stamp)
+}
+
+function copyAsList() {
+  const stamp = getFormattedExpirationStamp()
+  if (!stamp) return
+
+  copyText([
+    stamp,
+    '* ' + getZoneLocale(route.value[0].source),
+    ...route.value.map(link => '* ' + getZoneLocale(link.target)),
+  ].join('\n'))
 }
 </script>
 
@@ -97,6 +115,7 @@ function copyExpirationStamp() {
       copy as
       <button class="copy" :disabled="isCopying" @click="copyExpirationStamp">stamp</button>
       <button class="copy" :disabled="isCopying" @click="copyAsImage">image</button>
+      <button class="copy" :disabled="isCopying" @click="copyAsList">list</button>
     </div>
   </template>
 </template>
