@@ -5,8 +5,9 @@ import Navigator from '/@/services/Navigator'
 import { getZoneLocale } from '/@/data/locales'
 import html2canvas from 'html2canvas'
 import { copyImage, copyText } from '#preload'
+import { useLocalStorage } from '@vueuse/core'
 
-const isExitRouteInverted = ref(false)
+const isExitRouteInverted = useLocalStorage('isExitRouteInverted', false)
 const exitRouteIndex = ref(0)
 watch(Navigator.pathfinder.exitRoutes, () => { exitRouteIndex.value = 0 })
 
