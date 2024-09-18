@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, isBefore } from 'date-fns'
 import { computed, ref, watch } from 'vue'
 import Navigator from '/@/services/Navigator'
 import { getZoneLocale } from '/@/data/locales'
 import html2canvas from 'html2canvas'
-import { copyImage } from '#preload'
+import { copyImage, copyText } from '#preload'
 
 const isExitRouteInverted = ref(false)
 const exitRouteIndex = ref(0)
@@ -51,6 +51,19 @@ function copyAsImage() {
     })
   }, 10)
 }
+
+function copyExpirationStamp() {
+  if (!route.value.length) return
+
+  const minExpiration = route.value.reduce((acc, val) => {
+    if (!acc) return val.expiration
+    if (isBefore(val.expiration, acc)) return val.expiration
+    return acc
+  }, '')
+
+  const timestamp = Math.floor(new Date(minExpiration).getTime() / 1000)
+  copyText(`Закрывается <t:${timestamp}:R>`)
+}
 </script>
 
 <template>
@@ -80,7 +93,11 @@ function copyAsImage() {
         </tr>
       </tbody>
     </table>
-    <button class="copy" :disabled="isCopying" @click="copyAsImage">copy as image</button>
+    <div class="actions">
+      copy as
+      <button class="copy" :disabled="isCopying" @click="copyExpirationStamp">stamp</button>
+      <button class="copy" :disabled="isCopying" @click="copyAsImage">image</button>
+    </div>
   </template>
 </template>
 
@@ -102,10 +119,15 @@ function copyAsImage() {
 }
 
 button.copy {
-  margin-left: auto;
-
   &:disabled {
     background-color: grey;
   }
+}
+
+.actions {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  justify-content: flex-end;
 }
 </style>
