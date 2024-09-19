@@ -6,6 +6,7 @@ import { getZoneLocale } from '/@/data/locales'
 import html2canvas from 'html2canvas'
 import { copyImage, copyText } from '#preload'
 import { useLocalStorage } from '@vueuse/core'
+import { Zone } from '/@/data/zone'
 
 const isExitRouteInverted = useLocalStorage('isExitRouteInverted', false)
 const exitRouteIndex = ref(0)
@@ -77,7 +78,11 @@ function copyAsList() {
   const stamp = getFormattedExpirationStamp()
   if (!stamp) return
 
+  const isExitSafe = route.value[0].source in Zone
+  const exitTag = isExitSafe ? ':shield: Континент :shield:' : ':skull: Запределье :skull:'
+
   copyText([
+    exitTag,
     stamp,
     '1. ' + getZoneLocale(route.value[0].source),
     ...route.value.map((link, index) => index + 2 + '. ' + getZoneLocale(link.target)),
