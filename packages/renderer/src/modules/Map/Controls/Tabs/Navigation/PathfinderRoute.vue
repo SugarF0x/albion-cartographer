@@ -79,8 +79,8 @@ function copyAsList() {
 
   copyText([
     stamp,
-    '* ' + getZoneLocale(route.value[0].source),
-    ...route.value.map(link => '* ' + getZoneLocale(link.target)),
+    '1. ' + getZoneLocale(route.value[0].source),
+    ...route.value.map((link, index) => index + 2 + '. ' + getZoneLocale(link.target)),
   ].join('\n'))
 }
 </script>
