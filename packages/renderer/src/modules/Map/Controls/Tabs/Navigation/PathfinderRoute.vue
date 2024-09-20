@@ -7,6 +7,7 @@ import html2canvas from 'html2canvas'
 import { copyImage, copyText } from '#preload'
 import { useLocalStorage } from '@vueuse/core'
 import { Zone } from '/@/data/zone'
+import { ZoneToNodeMap } from '/@/data/staticZones'
 
 const isExitRouteInverted = useLocalStorage('isExitRouteInverted', false)
 const exitRouteIndex = ref(0)
@@ -78,8 +79,16 @@ function copyAsList() {
   const stamp = getFormattedExpirationStamp()
   if (!stamp) return
 
-  const isExitSafe = route.value[0].source in Zone
-  const exitTag = isExitSafe ? ':shield: Континент :shield:' : ':skull: Запределье :skull:'
+  const exitTag = (() => {
+    const start = route.value[0].source as Zone
+    const finish = route.value[route.value.length - 1].target as Zone
+
+    if (
+      start in Zone && ZoneToNodeMap[start].type.includes('BLACK')
+      || finish in Zone && ZoneToNodeMap[finish].type.includes('BLACK')
+    ) return ':skull: Запределье :skull:'
+    return ':shield: Континент :shield:'
+  })()
 
   copyText([
     exitTag,
