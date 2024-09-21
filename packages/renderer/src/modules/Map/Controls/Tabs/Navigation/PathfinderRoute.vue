@@ -59,11 +59,13 @@ function getFormattedExpirationStamp() {
   if (!route.value.length) return null
 
   const minExpiration = route.value.reduce((acc, val) => {
+    if (val.expiration === 'never') return acc
     if (!acc) return val.expiration
     if (isBefore(val.expiration, acc)) return val.expiration
     return acc
   }, '')
 
+  if (!minExpiration) return null
   const timestamp = Math.floor(new Date(minExpiration).getTime() / 1000)
   return `Закрывается <t:${timestamp}:R>`
 }
@@ -75,27 +77,33 @@ function copyExpirationStamp() {
   copyText(stamp)
 }
 
+function getZoneColorEmoji(id: string) {
+  if (!(id in Zone)) return ':wing:'
+  const zone = id as Zone
+
+  const emojiMap = {
+    STARTINGCITY: ':house_with_garden:',
+    CITY: ':european_castle:',
+    SAFEAREA: ':blue_circle:',
+    YELLOW: ':yellow_circle:',
+    RED: ':red_circle:',
+    BLACK: ':skull:',
+  }
+
+  for (const [type, code] of Object.entries(emojiMap))
+    if (ZoneToNodeMap[zone].type.includes(type)) return code
+
+  return ':purple_circle:'
+}
+
 function copyAsList() {
   const stamp = getFormattedExpirationStamp()
-  if (!stamp) return
-
-  const exitTag = (() => {
-    const start = route.value[0].source as Zone
-    const finish = route.value[route.value.length - 1].target as Zone
-
-    if (
-      start in Zone && ZoneToNodeMap[start].type.includes('BLACK')
-      || finish in Zone && ZoneToNodeMap[finish].type.includes('BLACK')
-    ) return ':skull: Запределье :skull:'
-    return ':shield: Континент :shield:'
-  })()
 
   copyText([
-    exitTag,
     stamp,
-    '1. ' + getZoneLocale(route.value[0].source),
-    ...route.value.map((link, index) => index + 2 + '. ' + getZoneLocale(link.target)),
-  ].join('\n'))
+    getZoneColorEmoji(route.value[0].source) + ' 1. ' + getZoneLocale(route.value[0].source),
+    ...route.value.map((link, index) => getZoneColorEmoji(link.target) + ' ' + (index + 2) + '. ' + getZoneLocale(link.target)),
+  ].filter(Boolean).join('\n'))
 }
 </script>
 
