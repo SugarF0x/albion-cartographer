@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { takeRight } from 'lodash'
 import Events from '/@/services/Events'
+import ControlsPanel from '/@/services/ControlsPanel'
 import { computed, ref } from 'vue'
 import { setAppAlwaysOnTop } from '#preload'
 
@@ -14,7 +15,9 @@ function toggleAppAlwaysOnTop() {
 </script>
 
 <template>
-  toggle always on top: <button @click="toggleAppAlwaysOnTop">{{ String(isAppAlwaysOnTop) }}</button>
+  <button @click="ControlsPanel.isOpen.value = false">hide controls</button>
+  toggle always on top:
+  <button @click="toggleAppAlwaysOnTop">{{ String(isAppAlwaysOnTop) }}</button>
   events (last 25)
   <pre class="event-log">{{ log }}</pre>
 </template>

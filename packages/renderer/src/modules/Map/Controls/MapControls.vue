@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import MainTab from '/@/modules/Map/Controls/Tabs/Main/MainTab.vue'
-import NavigationTab from '/src/modules/Map/Controls/Tabs/Navigation/NavigationTab.vue'
+import NavigationTab from '/@/modules/Map/Controls/Tabs/Navigation/NavigationTab.vue'
 import SettingsTab from '/@/modules/Map/Controls/Tabs/Settings/SettingsTab.vue'
+import ControlsPanel from '/@/services/ControlsPanel'
 import { type Component, ref } from 'vue'
 
 enum Tab {
@@ -20,7 +21,7 @@ const activeTab = ref<Tab>(Tab.MAIN)
 </script>
 
 <template>
-  <div class="controls-container">
+  <div v-show="ControlsPanel.isOpen.value" class="controls-container">
     <div class="tabs-container">
       <button
         v-for="tab in Tab"
@@ -39,6 +40,8 @@ const activeTab = ref<Tab>(Tab.MAIN)
       </keep-alive>
     </div>
   </div>
+
+  <button v-if="!ControlsPanel.isOpen.value" id="open-controls" @click="ControlsPanel.isOpen.value = true">controls</button>
 </template>
 
 <style scoped lang="scss">
@@ -83,5 +86,12 @@ const activeTab = ref<Tab>(Tab.MAIN)
   flex-direction: column;
   gap: 4px;
   flex-grow: 1;
+}
+
+#open-controls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
 }
 </style>
