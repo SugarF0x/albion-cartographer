@@ -1,4 +1,4 @@
-import {app, BrowserWindow} from 'electron'
+import {app, BrowserWindow, ipcMain} from 'electron'
 import {join} from 'node:path'
 import {fileURLToPath} from 'node:url'
 import windowStateKeeper from 'electron-window-state'
@@ -23,6 +23,8 @@ async function createWindow() {
     width: mainWindowState.width,
     height: mainWindowState.height,
   })
+
+  ipcMain.on('set-always-on-top', (event, value: boolean) => { browserWindow.setAlwaysOnTop(value) })
 
   browserWindow.setBounds(mainWindowState)
 

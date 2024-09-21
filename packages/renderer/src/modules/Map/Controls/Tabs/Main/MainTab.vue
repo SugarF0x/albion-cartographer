@@ -1,12 +1,20 @@
 <script setup lang="ts">
 import { takeRight } from 'lodash'
 import Events from '/@/services/Events'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { setAppAlwaysOnTop } from '#preload'
 
 const log = computed(() => takeRight(Events.log, 25).join('\n'))
+
+const isAppAlwaysOnTop = ref(false)
+function toggleAppAlwaysOnTop() {
+  setAppAlwaysOnTop(!isAppAlwaysOnTop.value)
+  isAppAlwaysOnTop.value = !isAppAlwaysOnTop.value
+}
 </script>
 
 <template>
+  toggle always on top: <button @click="toggleAppAlwaysOnTop">{{ String(isAppAlwaysOnTop) }}</button>
   events (last 25)
   <pre class="event-log">{{ log }}</pre>
 </template>
